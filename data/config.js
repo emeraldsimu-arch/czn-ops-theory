@@ -1,15 +1,18 @@
 // ═══════════════════════════════════════════════════════════
-// NEXUS v5.11 — CONFIG
+// NEXUS v5.12 — CONFIG
 // ── THIS IS THE ONLY FILE THAT NEEDS UPDATING ON PATCH DAY ──
-// Last verified: 2026-05-15
-// Next review: 2026-05-22 (ZZZ Deadly Assault resets)
-// Changes from v5.10:
-//   - Version bump to 5.11 (card rendering fixes, session layout)
+// Last verified: 2026-05-20
+// Next review: 2026-05-25 (WW Tower of Adversity + HSR MoC both reset)
+// Changes from v5.11:
+//   - Version bump to 5.12 (bug fixes: session sort, load label,
+//     urgency cards, pity gauge, close button, subtask font)
+//   - zzz_deadly: 2026-05-22 → 2026-06-05 (resets May 22, next cycle ends Jun 5)
+//   - ww_ww: 2026-06-08 → 2026-06-07 (tied to patch end, confirmed Jun 7)
 // ═══════════════════════════════════════════════════════════
 
 const CONFIG = {
-  version: '5.11',
-  lastVerified: '2026-05-15',
+  version: '5.12',
+  lastVerified: '2026-05-20',
 
   notion: {
     recordPageId:  '35d32a84-9d1c-8112-9240-e598022bf1c8',
@@ -38,14 +41,14 @@ const CONFIG = {
     hsr_as:     { ends: '2026-06-08', type: 'date',   label: 'Apocalyptic Shadow' },
     hsr_aa:     { ends: '2026-06-13', type: 'date',   label: 'Anomaly Arbitration' },
     ww_toa:     { ends: '2026-05-25', type: 'date',   label: 'Tower of Adversity (all zones incl. Hazard Zone)' },
-    ww_ww:      { ends: '2026-06-08', type: 'date',   label: 'Whimpering Wastes' },
+    ww_ww:      { ends: '2026-06-07', type: 'date',   label: 'Whimpering Wastes' },
     ww_em:      { ends: '2026-06-07', type: 'patch',  label: 'Endstate Matrix (v3.3 phase)' },
     ww_tg:      { ends: 'weekly',     type: 'weekly', label: 'Fantasies of Thousand Gateways' },
     czn_boh:    { ends: '2026-07-08', type: 'patch',  label: 'Basin of Hyperspace' },
     czn_fso:    { ends: '2026-07-08', type: 'patch',  label: 'Full-Scale Offensive' },
     czn_sortie: { ends: 'weekly',     type: 'weekly', label: 'Sortie Mode run' },
     zzz_shiyu:  { ends: '2026-05-29', type: 'date',   label: 'Shiyu Defense / Critical Node' },
-    zzz_deadly: { ends: '2026-05-22', type: 'date',   label: 'Deadly Assault' },
+    zzz_deadly: { ends: '2026-06-05', type: 'date',   label: 'Deadly Assault' },
     zzz_hollow: { ends: 'weekly',     type: 'weekly', label: 'Hollow Zero / Operation Matrix' },
   },
 
