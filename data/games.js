@@ -1,10 +1,15 @@
 // ═══════════════════════════════════════════════════════════
-// NEXUS v5.8 — GAME DATA
+// NEXUS v5.14 — GAME DATA
 // Task lists, endgame modes, calendar plan
 // Last verified: 2026-05-15 (Game8, Icy Veins, Fandom wiki, BitTopup)
-// Changes from v5.7:
-//   - czn resetNote updated: CZN has daily AND weekly reset at 18:00 UTC
-//     Previously incorrectly stated weekly-only
+// Changes from v5.13:
+//   - WEEK_PLAN tasks that correspond to tracked cycle modes now
+//     carry an optional cycleKey field. renderWeekStrip() uses
+//     these to subtract cleared cycles from each day's dynamic
+//     load calculation.
+//   - FRI ZZZ entry split: was "Shiyu Defense / Deadly Assault"
+//     (one task, two cycles). Now two separate entries with
+//     individual cycleKey fields for accurate bar math.
 // ═══════════════════════════════════════════════════════════
 
 const GAMES = [
@@ -161,6 +166,10 @@ const GAMES = [
 ];
 
 // ── Weekly calendar plan ──
+// cycleKey field (optional): links a task to a tracked endgame cycle.
+// renderWeekStrip() uses this to subtract cleared cycles from each
+// day's dynamic load bar. Tasks without cycleKey are static (dailies,
+// weeklies, non-cycle content) and always contribute their full weight.
 const WEEK_PLAN = [
   {
     day: 'MON', load: 'medium', focus: 'CZN + HSR Dailies',
@@ -182,8 +191,8 @@ const WEEK_PLAN = [
   {
     day: 'WED', load: 'heavy', focus: 'WW Endgame Block',
     tasks: [
-      { l: 'WW Tower of Adversity (all zones incl. Hazard Zone)', c: '#2de8a0' },
-      { l: 'WW Whimpering Wastes',              c: '#2de8a0' },
+      { l: 'WW Tower of Adversity (all zones incl. Hazard Zone)', c: '#2de8a0', cycleKey: 'ww_toa' },
+      { l: 'WW Whimpering Wastes',              c: '#2de8a0', cycleKey: 'ww_ww' },
       { l: 'HSR Daily + Sim Universe',          c: '#9d7ff5' },
       { l: 'CZN Spiral Tower ×1',               c: '#e84faa' },
     ]
@@ -191,27 +200,28 @@ const WEEK_PLAN = [
   {
     day: 'THU', load: 'medium', focus: 'HSR Endgame Block',
     tasks: [
-      { l: 'HSR Memory of Chaos',     c: '#9d7ff5' },
-      { l: 'HSR Pure Fiction',        c: '#9d7ff5' },
-      { l: 'ZZZ Hollow Zero run',     c: '#4ab8f0' },
-      { l: 'CZN Basin of Hyperspace', c: '#e84faa' },
+      { l: 'HSR Memory of Chaos',     c: '#9d7ff5', cycleKey: 'hsr_moc' },
+      { l: 'HSR Pure Fiction',        c: '#9d7ff5', cycleKey: 'hsr_pf'  },
+      { l: 'ZZZ Hollow Zero run',     c: '#4ab8f0', cycleKey: 'zzz_hollow' },
+      { l: 'CZN Basin of Hyperspace', c: '#e84faa', cycleKey: 'czn_boh' },
     ]
   },
   {
     day: 'FRI', load: 'heavy', focus: 'HSR + ZZZ Endgame',
     tasks: [
-      { l: 'HSR Apocalyptic Shadow',             c: '#9d7ff5' },
-      { l: 'HSR Anomaly Arbitration',            c: '#9d7ff5' },
-      { l: 'ZZZ Shiyu Defense / Deadly Assault', c: '#4ab8f0' },
-      { l: 'WW Endstate Matrix',                 c: '#2de8a0' },
+      { l: 'HSR Apocalyptic Shadow',    c: '#9d7ff5', cycleKey: 'hsr_as'    },
+      { l: 'HSR Anomaly Arbitration',   c: '#9d7ff5', cycleKey: 'hsr_aa'    },
+      { l: 'ZZZ Shiyu Defense / Critical Node', c: '#4ab8f0', cycleKey: 'zzz_shiyu'  },
+      { l: 'ZZZ Deadly Assault',        c: '#4ab8f0', cycleKey: 'zzz_deadly' },
+      { l: 'WW Endstate Matrix',        c: '#2de8a0', cycleKey: 'ww_em'     },
     ]
   },
   {
     day: 'SAT', load: 'medium', focus: 'CZN Deep Session',
     tasks: [
-      { l: 'CZN Sortie Mode run',      c: '#e84faa' },
-      { l: 'CZN Full-Scale Offensive', c: '#e84faa' },
-      { l: 'WW Thousand Gateways',     c: '#2de8a0' },
+      { l: 'CZN Sortie Mode run',      c: '#e84faa', cycleKey: 'czn_sortie' },
+      { l: 'CZN Full-Scale Offensive', c: '#e84faa', cycleKey: 'czn_fso'    },
+      { l: 'WW Thousand Gateways',     c: '#2de8a0', cycleKey: 'ww_tg'      },
       { l: 'Mop-up any missed dailies',c: '#4a5468' },
     ]
   },
