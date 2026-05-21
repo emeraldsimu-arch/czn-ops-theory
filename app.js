@@ -1,12 +1,14 @@
 // ═══════════════════════════════════════════════════════════
-// NEXUS v5.13 — APP.JS
+// NEXUS v5.14 — APP.JS
 // All application logic, state management, Notion sync
 // GitHub: Emereldsimu-arch/czn-ops-theory
-// Changes from v5.12:
-//   - Weekly planner day expansion: tapping any day in the week
-//     strip expands a detail panel showing that day's task list,
-//     focus label, and load level. Today defaults to expanded.
-//     Single-day expanded at a time; tap again to collapse.
+// Changes from v5.13:
+//   - renderWeekStrip() now calculates dynamic load per day.
+//     Tasks with a cycleKey field are checked against getCy();
+//     cleared cycles subtract their contribution from the day's
+//     effective load before bar height and color are determined.
+//     Past-day decay applies after cycle subtraction, same order
+//     as before. Static tasks (no cycleKey) are unaffected.
 // ═══════════════════════════════════════════════════════════
 
 // ── STORAGE KEYS ──
@@ -407,29 +409,23 @@ function checkFreshness() {
 }
 
 // ── SESSION LOAD LABEL HELPER (shared by buildTodayPanel + buildFeaturedDay) ──
-// BUG 2 FIX: Single source of truth for load classification.
-// Calculates totalMins dynamically from actual remaining tasks and cycles,
-// then returns loadClass and budgetLabel using the same thresholds as buildFeaturedDay.
 function getSessionLoadLabel() {
   const s = wsFull();
   const CYCLE_MINS = 30;
   let totalMins = 0;
 
   GAMES.forEach(g => {
-    // Urgent cycles (≤2d)
     g.endgameModes.forEach(m => {
       if (getCy(m.cycleKey) || !isCycleUnlocked(m.cycleKey)) return;
       const d = daysUntilCycleEnds(m.cycleKey);
       if (d !== null && d <= 2) totalMins += CYCLE_MINS;
     });
 
-    // Undone dailies
     const undoneDailies = g.daily.filter((_, i) => !getv(s, g.id, 'daily', i));
     if (undoneDailies.length > 0) {
       totalMins += Math.round(g.dailyLoad * 60 * (undoneDailies.length / g.daily.length));
     }
 
-    // Non-urgent cycles within 14d
     g.endgameModes.forEach(m => {
       if (getCy(m.cycleKey) || !isCycleUnlocked(m.cycleKey)) return;
       const d = daysUntilCycleEnds(m.cycleKey);
@@ -472,7 +468,6 @@ function buildTodayPanel() {
     });
   });
 
-  // BUG 2 FIX: derive load label from same dynamic calculation as buildFeaturedDay
   const dow   = today.getDay();
   const di    = dow === 0 ? 6 : dow - 1;
   const plan  = WEEK_PLAN[di];
@@ -724,6 +719,12 @@ function togCy(k, el) {
     if (cnt2) cnt2.textContent = cnt + '/' + g.endgameModes.length;
   }
 
+  // v5.14: re-render week strip so bar heights update immediately after toggle
+  if (document.getElementById('view-calendar')?.classList.contains('active')) {
+    renderWeekStrip();
+    renderWsDayDetail();
+  }
+
   if (document.getElementById('sessionOverlay')?.classList.contains('open')) {
     refreshSessionList();
   }
@@ -776,11 +777,6 @@ let sessionTimerInterval = null;
 let sessionCountdownInterval = null;
 let sessionStartTime = null;
 
-// BUG 1 FIX: buildSessionList now sorts entire array by urgency tier before returning.
-// Tier 0 = urgent cycles (≤2d), sorted by days asc.
-// Tier 1 = daily blocks (game priority order, natural from GAMES iteration).
-// Tier 2 = non-urgent cycles (game priority order, natural from GAMES iteration).
-// Game priority order is preserved as a tiebreaker within each tier.
 function buildSessionList() {
   const s = wsFull();
   const items = [];
@@ -848,17 +844,13 @@ function buildSessionList() {
     });
   });
 
-  // Sort: tier first, then within Tier 0 sort by days asc (most urgent first).
-  // Tier 1 and Tier 2 preserve game priority order from GAMES iteration above.
   items.sort((a, b) => {
     if (a.sortTier !== b.sortTier) return a.sortTier - b.sortTier;
     if (a.sortTier === 0) {
-      // Both urgent cycles — sort by days asc, 0-day (today) before 1-day before 2-day
       const da = a.days === null ? 999 : a.days;
       const db = b.days === null ? 999 : b.days;
       return da - db;
     }
-    // Tier 1 and 2: preserve insertion order (stable sort in modern JS)
     return 0;
   });
 
@@ -1014,6 +1006,12 @@ function sessionToggleCycle(cycleKey, btn) {
     if (cnt2) cnt2.textContent = cnt + '/' + g.endgameModes.length;
   }
 
+  // v5.14: re-render week strip if calendar tab is open
+  if (document.getElementById('view-calendar')?.classList.contains('active')) {
+    renderWeekStrip();
+    renderWsDayDetail();
+  }
+
   setTimeout(() => {
     if (item) item.classList.add('sm-slideout');
     setTimeout(() => { renderSessionList(); updateSessionCountdowns(); }, 500);
@@ -1047,19 +1045,16 @@ function updateSessionTimer() {
   if (el) el.textContent = `${m}:${String(s).padStart(2,'0')}`;
 }
 
-// v5.10: FAB hidden on open, power-on flicker, FAB restored on close
 function openSession() {
   const overlay = document.getElementById('sessionOverlay');
   if (!overlay) return;
 
-  // Power-on flicker — add class, remove after animation completes
   overlay.classList.add('sm-poweron');
   setTimeout(() => overlay.classList.remove('sm-poweron'), 460);
 
   overlay.classList.add('open');
   document.body.style.overflow = 'hidden';
 
-  // Hide FAB while session is open
   const fab = document.getElementById('sessionFab');
   if (fab) fab.classList.add('fab-hidden');
 
@@ -1088,7 +1083,6 @@ function closeSession() {
   overlay.classList.remove('open');
   document.body.style.overflow = '';
 
-  // Restore FAB
   const fab = document.getElementById('sessionFab');
   if (fab) fab.classList.remove('fab-hidden');
 
@@ -1098,8 +1092,6 @@ function closeSession() {
 }
 
 // ── CURRENCY DASHBOARD ──
-// v5.10: fuel gauge pity bars, terminal aesthetic,
-// data-game-label attribute on cards for CSS watermark
 function calcProjection(gid, balance, pityVal, onGuarantee) {
   const pull   = CONFIG.pulls[gid];
   const weekly = CONFIG.weeklyYields[gid];
@@ -1143,7 +1135,6 @@ function buildCurrencySection() {
     const earnedSoFar = calcEarned(g.id, s);
     const proj       = calcProjection(g.id, balance, pityVal, onGuar);
 
-    // Pity gauge fill color — green safe zone, warn at soft pity, danger at hard
     const pityPct = Math.min(100, Math.round(pityVal / pull.hardPity * 100));
     const softPct = pull.softPity ? Math.round(pull.softPity / pull.hardPity * 100) : 70;
     const pityColor = pityVal >= pull.hardPity - 5
@@ -1726,7 +1717,6 @@ function buildFeaturedDay() {
   });
 
   const allItems = [...urgent, ...normal];
-  // BUG 2 FIX: use shared helper for load label so it matches buildTodayPanel
   const { loadClass, budgetLabel, totalMins } = getSessionLoadLabel();
   const loadColor = totalMins > 90 ? 'var(--danger)' : totalMins > 45 ? 'var(--warn)' : 'var(--ok)';
   const dateStr = now.toLocaleDateString('en-US', { weekday:'long', month:'short', day:'numeric' }).toUpperCase();
@@ -1784,16 +1774,26 @@ function buildFeaturedDay() {
     </div>`;
 }
 
-// ── WEEK STRIP SELECTED DAY — persists while calendar tab is open, resets on tab switch ──
-let wsSelectedDay = -1; // index into WEEK_PLAN; -1 = none
+// ── WEEK STRIP SELECTED DAY ──
+let wsSelectedDay = -1;
 
 function wsSelectDay(i) {
-  // Toggle: tapping the already-selected day collapses it
   wsSelectedDay = wsSelectedDay === i ? -1 : i;
   renderWeekStrip();
   renderWsDayDetail();
 }
 
+// ── v5.14: DYNAMIC WEEK STRIP LOAD CALCULATION ──
+// Each day's load bar now reflects actual cycle completion state.
+// Tasks with a cycleKey are checked via getCy(); cleared cycles
+// subtract their share from the day's effective load value.
+// Calculation order:
+//   1. Count total keyed tasks for the day
+//   2. Count how many are cleared
+//   3. Calculate clearedFraction (0–1)
+//   4. Subtract cleared contribution from static LP baseline
+//   5. Apply existing past-day decay (unchanged)
+//   6. Re-derive bar color from dynamic value
 function renderWeekStrip() {
   const s   = wsFull();
   const now = new Date();
@@ -1804,15 +1804,42 @@ function renderWeekStrip() {
   const compRatio = totalDone(s) / Math.max(1, GAMES.reduce((a,g) => a + g.daily.length + g.weekly.length, 0));
 
   document.getElementById('weekStrip').innerHTML = WEEK_PLAN.map((d, i) => {
-    const isT      = i === ti;
-    const isPast   = i < ti;
-    const isSel    = i === wsSelectedDay;
+    const isT    = i === ti;
+    const isPast = i < ti;
+    const isSel  = i === wsSelectedDay;
+
+    // Static baseline from WEEK_PLAN load string
     let lp = LP[d.load];
+
+    // Dynamic adjustment: subtract cleared cycles
+    // Only tasks with a cycleKey participate in this calculation.
+    // Tasks without cycleKey (dailies, weeklies, misc) are static weight.
+    const keyedTasks = d.tasks.filter(t => t.cycleKey);
+    if (keyedTasks.length > 0) {
+      const clearedCount = keyedTasks.filter(t => getCy(t.cycleKey)).length;
+      if (clearedCount > 0) {
+        // Each keyed task represents an equal share of the keyed portion.
+        // Keyed tasks are treated as contributing proportionally to total LP.
+        // We reduce LP by the cleared fraction of the keyed tasks' share.
+        // Conservative weighting: keyed tasks account for ~60% of day load
+        // (remaining ~40% is dailies and static tasks — never clears to zero).
+        const KEYED_WEIGHT = 0.60;
+        const clearedFraction = clearedCount / keyedTasks.length;
+        lp = Math.round(lp - (lp * KEYED_WEIGHT * clearedFraction));
+        lp = Math.max(8, lp); // floor: bar never disappears entirely
+      }
+    }
+
+    // Past-day decay (unchanged from v5.13 — applies after cycle subtraction)
     if (isPast) lp = Math.max(5, lp - Math.round(compRatio * lp));
+
+    // Derive color from dynamic lp value (same thresholds as before)
     const lc = lp > 65 ? LC.heavy : lp > 35 ? LC.medium : LC.light;
+
     const dots = d.tasks.map(t =>
       `<div class="ws-dot" style="background:${t.c};opacity:${isPast?0.3:1}"></div>`
     ).join('');
+
     return `<div class="ws-day${isT?' ws-today':''}${isPast?' ws-past':''}${isSel?' ws-selected':''}"
       onclick="wsSelectDay(${i})" role="button" aria-expanded="${isSel}">
       <div class="ws-name">${d.day}</div>
@@ -1882,7 +1909,6 @@ function buildCalendar() {
 
   document.getElementById('featuredDay').innerHTML = buildFeaturedDay();
 
-  // Default to today expanded on first open; preserve selection on subsequent rebuilds
   if (wsSelectedDay === -1) wsSelectedDay = ti;
 
   renderWeekStrip();
@@ -1909,7 +1935,7 @@ function switchView(id, el) {
   document.getElementById('view-' + id)?.classList.add('active');
   if (el) el.classList.add('active');
   if (id === 'calendar') {
-    wsSelectedDay = -1; // reset to today on each visit
+    wsSelectedDay = -1;
     buildCalendar();
   }
   if (id === 'achievements') renderAchievements();
