@@ -1,12 +1,12 @@
 // ═══════════════════════════════════════════════════════════
-// NEXUS v5.12 — APP.JS
+// NEXUS v5.13 — APP.JS
 // All application logic, state management, Notion sync
 // GitHub: Emereldsimu-arch/czn-ops-theory
-// Changes from v5.11:
-//   - BUG 1: buildSessionList() now sorts by urgency tier before return
-//     Urgent cycles (≤2d) always first regardless of game, ordered by days asc
-//   - BUG 2: buildTodayPanel() now derives load label from dynamic totalMins
-//     via shared getSessionLoadLabel() helper — matches buildFeaturedDay()
+// Changes from v5.12:
+//   - Weekly planner day expansion: tapping any day in the week
+//     strip expands a detail panel showing that day's task list,
+//     focus label, and load level. Today defaults to expanded.
+//     Single-day expanded at a time; tap again to collapse.
 // ═══════════════════════════════════════════════════════════
 
 // ── STORAGE KEYS ──
@@ -1784,8 +1784,93 @@ function buildFeaturedDay() {
     </div>`;
 }
 
-function buildCalendar() {
+// ── WEEK STRIP SELECTED DAY — persists while calendar tab is open, resets on tab switch ──
+let wsSelectedDay = -1; // index into WEEK_PLAN; -1 = none
+
+function wsSelectDay(i) {
+  // Toggle: tapping the already-selected day collapses it
+  wsSelectedDay = wsSelectedDay === i ? -1 : i;
+  renderWeekStrip();
+  renderWsDayDetail();
+}
+
+function renderWeekStrip() {
   const s   = wsFull();
+  const now = new Date();
+  const dow = now.getDay();
+  const ti  = dow === 0 ? 6 : dow - 1;
+  const LC  = { light:'#4ade80', medium:'#ffb347', heavy:'#ff5252' };
+  const LP  = { light:30, medium:60, heavy:90 };
+  const compRatio = totalDone(s) / Math.max(1, GAMES.reduce((a,g) => a + g.daily.length + g.weekly.length, 0));
+
+  document.getElementById('weekStrip').innerHTML = WEEK_PLAN.map((d, i) => {
+    const isT      = i === ti;
+    const isPast   = i < ti;
+    const isSel    = i === wsSelectedDay;
+    let lp = LP[d.load];
+    if (isPast) lp = Math.max(5, lp - Math.round(compRatio * lp));
+    const lc = lp > 65 ? LC.heavy : lp > 35 ? LC.medium : LC.light;
+    const dots = d.tasks.map(t =>
+      `<div class="ws-dot" style="background:${t.c};opacity:${isPast?0.3:1}"></div>`
+    ).join('');
+    return `<div class="ws-day${isT?' ws-today':''}${isPast?' ws-past':''}${isSel?' ws-selected':''}"
+      onclick="wsSelectDay(${i})" role="button" aria-expanded="${isSel}">
+      <div class="ws-name">${d.day}</div>
+      <div class="ws-bar-wrap">
+        <div class="ws-bar"><div class="ws-fill" style="width:${lp}%;background:${lc}"></div></div>
+      </div>
+      <div class="ws-dots">${dots}</div>
+      <div class="ws-focus">${d.focus}</div>
+      <div class="ws-chevron">${isSel ? '▴' : '▾'}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderWsDayDetail() {
+  const container = document.getElementById('wsDayDetail');
+  if (!container) return;
+
+  if (wsSelectedDay === -1) {
+    container.innerHTML = '';
+    container.classList.remove('open');
+    return;
+  }
+
+  const day  = WEEK_PLAN[wsSelectedDay];
+  const now  = new Date();
+  const dow  = now.getDay();
+  const ti   = dow === 0 ? 6 : dow - 1;
+  const isT  = wsSelectedDay === ti;
+  const isPast = wsSelectedDay < ti;
+
+  const LC = { light: { label: 'Light', color: 'var(--ok)' }, medium: { label: 'Medium', color: 'var(--warn)' }, heavy: { label: 'Heavy', color: 'var(--danger)' } };
+  const loadInfo = LC[day.load] || LC.medium;
+
+  const dayLabel = isT ? 'TODAY' : isPast ? 'PAST' : 'UPCOMING';
+  const dayLabelColor = isT ? 'var(--amber)' : isPast ? 'var(--text-dim)' : 'var(--text-mid)';
+
+  const tasksHTML = day.tasks.map(t => `
+    <div class="wsd-task">
+      <div class="wsd-task-dot" style="background:${t.c}"></div>
+      <span class="wsd-task-label">${t.l}</span>
+    </div>`).join('');
+
+  container.innerHTML = `
+    <div class="wsd-header">
+      <div class="wsd-day-meta">
+        <span class="wsd-day-name">${day.day}</span>
+        <span class="wsd-day-badge" style="color:${dayLabelColor}">${dayLabel}</span>
+      </div>
+      <div class="wsd-focus">${day.focus}</div>
+      <div class="wsd-load" style="color:${loadInfo.color}">${loadInfo.label} session</div>
+    </div>
+    <div class="wsd-divider"></div>
+    <div class="wsd-tasks">${tasksHTML}</div>`;
+
+  container.classList.add('open');
+}
+
+function buildCalendar() {
   const now = new Date();
   const dow = now.getDay();
   const ti  = dow === 0 ? 6 : dow - 1;
@@ -1797,30 +1882,13 @@ function buildCalendar() {
 
   document.getElementById('featuredDay').innerHTML = buildFeaturedDay();
 
-  const LC = { light:'#4ade80', medium:'#ffb347', heavy:'#ff5252' };
-  const LP = { light:30, medium:60, heavy:90 };
-  const compRatio = totalDone(s) / Math.max(1, GAMES.reduce((a,g) => a + g.daily.length + g.weekly.length, 0));
-  const GAME_COLORS = ['#e84faa','#2de8a0','#9d7ff5','#4ab8f0'];
+  // Default to today expanded on first open; preserve selection on subsequent rebuilds
+  if (wsSelectedDay === -1) wsSelectedDay = ti;
 
-  document.getElementById('weekStrip').innerHTML = WEEK_PLAN.map((d, i) => {
-    const isT  = i === ti;
-    const isPast = i < ti;
-    let lp = LP[d.load];
-    if (isPast) lp = Math.max(5, lp - Math.round(compRatio * lp));
-    const lc = lp > 65 ? LC.heavy : lp > 35 ? LC.medium : LC.light;
-    const dots = d.tasks.map((t) => {
-      return `<div class="ws-dot" style="background:${t.c};opacity:${isPast?0.3:1}"></div>`;
-    }).join('');
-    return `<div class="ws-day${isT ? ' ws-today' : ''}${isPast ? ' ws-past' : ''}">
-      <div class="ws-name">${d.day}</div>
-      <div class="ws-bar-wrap">
-        <div class="ws-bar"><div class="ws-fill" style="width:${lp}%;background:${lc}"></div></div>
-      </div>
-      <div class="ws-dots">${dots}</div>
-      <div class="ws-focus">${d.focus}</div>
-    </div>`;
-  }).join('');
+  renderWeekStrip();
+  renderWsDayDetail();
 
+  const s = wsFull();
   document.getElementById('burnGames').innerHTML = GAMES.map(g => {
     const p = Math.round(g.weeklyLoad / 3 * 100);
     return `<div class="burn-row">
@@ -1840,7 +1908,10 @@ function switchView(id, el) {
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   document.getElementById('view-' + id)?.classList.add('active');
   if (el) el.classList.add('active');
-  if (id === 'calendar')     buildCalendar();
+  if (id === 'calendar') {
+    wsSelectedDay = -1; // reset to today on each visit
+    buildCalendar();
+  }
   if (id === 'achievements') renderAchievements();
   if (id === 'currency')     buildCurrencySection();
 }
