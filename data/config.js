@@ -1,18 +1,23 @@
 // ═══════════════════════════════════════════════════════════
-// NEXUS v5.12 — CONFIG
+// NEXUS v5.14 — CONFIG
 // ── THIS IS THE ONLY FILE THAT NEEDS UPDATING ON PATCH DAY ──
-// Last verified: 2026-05-20
-// Next review: 2026-05-25 (WW Tower of Adversity + HSR MoC both reset)
-// Changes from v5.11:
-//   - Version bump to 5.12 (bug fixes: session sort, load label,
-//     urgency cards, pity gauge, close button, subtask font)
-//   - zzz_deadly: 2026-05-22 → 2026-06-05 (resets May 22, next cycle ends Jun 5)
-//   - ww_ww: 2026-06-08 → 2026-06-07 (tied to patch end, confirmed Jun 7)
+// Last verified: 2026-05-29
+// Next review: 2026-06-01 (HSR v4.3 launches — AA resets, patch changes)
+// Changes from v5.12:
+//   - Version bump to 5.14
+//   - hsr_moc:  2026-05-25 → 2026-07-06 (reset May 25, next cycle ends Jul 6 per v4.3 schedule)
+//   - hsr_aa:   2026-06-13 → 2026-06-01 (resets with v4.3 launch June 1)
+//   - ww_toa:   2026-05-25 → 2026-06-22 (reset May 25, 28-day cycle → Jun 22)
+//   - ww_ww:    2026-06-07 → 2026-06-08 (confirmed Jun 8 per Game8 v3.3 guide)
+//   - ww_em:    2026-06-07 → 2026-06-08 (confirmed Jun 8 per ldshop guide)
+//   - zzz_shiyu:2026-05-29 → 2026-06-12 (biweekly Friday — resets today May 29, next Jun 12)
+//   - zzz_deadly:2026-06-05 → 2026-06-05 (confirmed, no change — current cycle May 22–Jun 5)
+//   - zzz patch end: 2026-06-10 → 2026-06-17 (v3.0 releases June 17 per Game8)
 // ═══════════════════════════════════════════════════════════
 
 const CONFIG = {
-  version: '5.12',
-  lastVerified: '2026-05-20',
+  version: '5.14',
+  lastVerified: '2026-05-29',
 
   notion: {
     recordPageId:  '35d32a84-9d1c-8112-9240-e598022bf1c8',
@@ -32,22 +37,31 @@ const CONFIG = {
     { game: 'czn', version: 'Season 3', ends: '2026-07-08', resetDay: 0 },
     { game: 'ww',  version: '3.3',      ends: '2026-06-07', resetDay: 1 },
     { game: 'hsr', version: '4.2',      ends: '2026-06-01', resetDay: 1 },
-    { game: 'zzz', version: '2.8',      ends: '2026-06-10', resetDay: 1 },
+    { game: 'zzz', version: '2.8',      ends: '2026-06-17', resetDay: 1 },
   ],
 
   cycles: {
-    hsr_moc:    { ends: '2026-05-25', type: 'date',   label: 'Memory of Chaos' },
+    // HSR — v4.3 launches June 1. AA resets with patch. MoC reset May 25 → next Jul 6.
+    // PF and AS confirmed unchanged from previous verify.
+    hsr_moc:    { ends: '2026-07-06', type: 'date',   label: 'Memory of Chaos' },
     hsr_pf:     { ends: '2026-06-22', type: 'date',   label: 'Pure Fiction' },
     hsr_as:     { ends: '2026-06-08', type: 'date',   label: 'Apocalyptic Shadow' },
-    hsr_aa:     { ends: '2026-06-13', type: 'date',   label: 'Anomaly Arbitration' },
-    ww_toa:     { ends: '2026-05-25', type: 'date',   label: 'Tower of Adversity (all zones incl. Hazard Zone)' },
-    ww_ww:      { ends: '2026-06-07', type: 'date',   label: 'Whimpering Wastes' },
-    ww_em:      { ends: '2026-06-07', type: 'patch',  label: 'Endstate Matrix (v3.3 phase)' },
+    hsr_aa:     { ends: '2026-06-01', type: 'date',   label: 'Anomaly Arbitration' },
+
+    // WW — ToA reset May 25 (28-day cycle → Jun 22). WhiWa + EM both confirmed Jun 8.
+    ww_toa:     { ends: '2026-06-22', type: 'date',   label: 'Tower of Adversity (all zones incl. Hazard Zone)' },
+    ww_ww:      { ends: '2026-06-08', type: 'date',   label: 'Whimpering Wastes' },
+    ww_em:      { ends: '2026-06-08', type: 'patch',  label: 'Endstate Matrix (v3.3 phase)' },
     ww_tg:      { ends: 'weekly',     type: 'weekly', label: 'Fantasies of Thousand Gateways' },
+
+    // CZN — patch ends Jul 8, no change
     czn_boh:    { ends: '2026-07-08', type: 'patch',  label: 'Basin of Hyperspace' },
     czn_fso:    { ends: '2026-07-08', type: 'patch',  label: 'Full-Scale Offensive' },
     czn_sortie: { ends: 'weekly',     type: 'weekly', label: 'Sortie Mode run' },
-    zzz_shiyu:  { ends: '2026-05-29', type: 'date',   label: 'Shiyu Defense / Critical Node' },
+
+    // ZZZ — Shiyu biweekly Friday resets. Was May 29 (today), now Jun 12.
+    // Deadly Assault current cycle May 22–Jun 5, confirmed no change.
+    zzz_shiyu:  { ends: '2026-06-12', type: 'date',   label: 'Shiyu Defense / Critical Node' },
     zzz_deadly: { ends: '2026-06-05', type: 'date',   label: 'Deadly Assault' },
     zzz_hollow: { ends: 'weekly',     type: 'weekly', label: 'Hollow Zero / Operation Matrix' },
   },
@@ -58,7 +72,7 @@ const CONFIG = {
     { id: 'ev_ww_anni',  game: 'ww',  tier: 'standard', name: '2nd Anniversary Missions',      ends: '2026-06-07', desc: 'Bountiful Waves + login chain — up to 50 confirmed direct pulls', currency: { type: 'astrite', amount: 8000, note: '~50 direct pulls from anniversary' } },
     { id: 'ev_hsr_anni', game: 'hsr', tier: 'standard', name: '3rd Anniversary Missions',      ends: '2026-06-01', desc: 'Cosmic Data Roaming + login chain', currency: { type: 'jade', amount: 3200, note: '~20 pulls from anniversary events' } },
     { id: 'ev_czn_s3',   game: 'czn', tier: 'standard', name: 'Season 3 SS Edenity Patrol',    ends: '2026-07-08', desc: 'Seasonal event missions', currency: { type: 'crystals', amount: 0, note: 'Crystals + Rescue Anchors from missions' } },
-    { id: 'ev_zzz_28',   game: 'zzz', tier: 'standard', name: 'v2.8 New Eridan Sunset Events', ends: '2026-06-10', desc: 'Operation: Save Bootopia + login chain', currency: { type: 'polychrome', amount: 0, note: 'Free Booltergeist Bangboo + event Polychrome' } },
+    { id: 'ev_zzz_28',   game: 'zzz', tier: 'standard', name: 'v2.8 New Eridan Sunset Events', ends: '2026-06-17', desc: 'Operation: Save Bootopia + login chain', currency: { type: 'polychrome', amount: 0, note: 'Free Booltergeist Bangboo + event Polychrome' } },
   ],
 
   pulls: {
