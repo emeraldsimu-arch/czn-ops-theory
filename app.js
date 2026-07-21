@@ -1,14 +1,21 @@
 // ═══════════════════════════════════════════════════════════
-// NEXUS v5.14 — APP.JS
-// All application logic, state management, Notion sync
-// GitHub: Emereldsimu-arch/czn-ops-theory
-// Changes from v5.13:
-//   - renderWeekStrip() now calculates dynamic load per day.
-//     Tasks with a cycleKey field are checked against getCy();
-//     cleared cycles subtract their contribution from the day's
-//     effective load before bar height and color are determined.
-//     Past-day decay applies after cycle subtraction, same order
-//     as before. Static tasks (no cycleKey) are unaffected.
+// NEXUS v5.15 — APP.JS
+// All application logic and state management. localStorage only.
+// GitHub: emeraldsimu-arch/czn-ops-theory
+// Changes from v5.14:
+//   - Notion sync REMOVED (deprecated — could never authenticate
+//     from a static site). Deleted: syncLTToNotion, pushAchToNotion,
+//     pushSessionToNotion, queueOutbox, flushOutbox, the flushOutbox
+//     startup timer, and all four call sites (updateLT,
+//     checkAllAchievements, checkWeekRollover, closeModal).
+//   - setSyncStatus KEPT and repurposed as the local save indicator.
+//     The record-sync dot now reads "Saved locally · <time>" after
+//     each state write via markSavedLocally(), and idles at
+//     "Local archive — data stored on this device".
+//   - One-time migration: stranded 'nexus_v53_ob' outbox entries are
+//     removed from localStorage at init (idempotent, runs every boot).
+//   - OUTBOXK storage key constant removed.
+//   - Header repo-name typo fixed (Emereldsimu → emeraldsimu).
 // ═══════════════════════════════════════════════════════════
 
 // ── STORAGE KEYS ──
@@ -18,7 +25,6 @@ const NK      = 'nexus_v53_n';
 const CNK     = 'nexus_v53_cn';
 const QNK     = 'nexus_v53_qn';
 const STRK    = 'nexus_v53_str';
-const OUTBOXK = 'nexus_v53_ob';
 const PREVWK  = 'nexus_v53_pw';
 const CURK    = 'nexus_v53_cur';
 const PITYK   = 'nexus_v53_pity';
@@ -1290,7 +1296,7 @@ function updateLT() {
 
   lt.hasNote = !!(localStorage.getItem(NK)?.length > 3 || localStorage.getItem(QNK)?.length > 3);
   saveLT(lt);
-  syncLTToNotion(lt);
+  markSavedLocally();
 }
 
 function getDailyCompletionCount(gid) {
@@ -1300,115 +1306,14 @@ function getDailyCompletionCount(gid) {
   return lt.dailyCompletions[gid] || 0;
 }
 
-// ── NOTION SYNC ──
-let syncTimer = null;
-function syncLTToNotion(lt) {
-  clearTimeout(syncTimer);
-  syncTimer = setTimeout(async () => {
-    setSyncStatus('pending', 'Syncing with NEXUS archive…');
-    try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514', max_tokens: 500,
-          mcp_servers: [{ type: 'url', url: 'https://mcp.notion.com/mcp', name: 'notion' }],
-          messages: [{ role: 'user', content:
-            `Update the NEXUS operator record page ID ${CONFIG.notion.recordPageId} with these values:
-Total Tasks Completed: ${lt.totalTasksCompleted||0}
-Total Cycle Clears: ${lt.totalCycleClears||0}
-CZN Lifetime Cycle Clears: ${lt.cznLifetimeCycleClears||0}
-WW Lifetime Cycle Clears: ${lt.wwLifetimeCycleClears||0}
-HSR Lifetime Cycle Clears: ${lt.hsrLifetimeCycleClears||0}
-ZZZ Lifetime Cycle Clears: ${lt.zzzLifetimeCycleClears||0}
-Current Login Streak: ${lt.currentStreak||0}
-Longest Login Streak: ${lt.longestStreak||0}
-Total Perfect Weeks: ${lt.totalPerfectWeeks||0}
-Total Dispatches Earned: ${lt.totalDispatchesEarned||0}
-Weeks Tracked: ${lt.weeksTracked||0}
-Highest Tier Reached: ${lt.highestTier||'SIGNAL'}
-SIGNAL Achievements: ${Object.values(lt.unlockedAch||{}).filter(t=>t==='signal').length}
-OPERATIVE Achievements: ${Object.values(lt.unlockedAch||{}).filter(t=>t==='operative').length}
-VANGUARD Achievements: ${Object.values(lt.unlockedAch||{}).filter(t=>t==='vanguard').length}
-PHANTOM Achievements: ${Object.values(lt.unlockedAch||{}).filter(t=>t==='phantom').length}
-Update those properties now.` }]
-        })
-      });
-      if (res.ok) { setSyncStatus('ok', 'Synced ' + new Date().toLocaleTimeString()); flushOutbox(); }
-      else throw new Error('API ' + res.status);
-    } catch (e) {
-      setSyncStatus('err', 'Sync failed — saved locally');
-      queueOutbox({ type: 'lt', data: lt, ts: Date.now() });
-    }
-  }, 2500);
-}
-
-async function pushAchToNotion(ach) {
-  try {
-    await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514', max_tokens: 400,
-        mcp_servers: [{ type: 'url', url: 'https://mcp.notion.com/mcp', name: 'notion' }],
-        messages: [{ role: 'user', content:
-          `Create a new page in the NEXUS_ACHIEVEMENTS database (data source ID: ${CONFIG.notion.achDsId}):
-Achievement: ${ach.name}
-Achievement ID: ${ach.id}
-Tier: ${ach.tier.toUpperCase()}
-Game: ${ach.game}
-Unlock Date: ${new Date().toISOString().slice(0,10)}
-Week Earned: ${wk()}
-Flavor Text: ${ach.flavor}
-Create now.` }]
-      })
-    });
-  } catch { queueOutbox({ type: 'ach', data: ach, ts: Date.now() }); }
-}
-
-async function pushSessionToNotion(weekKey, stats) {
-  try {
-    await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514', max_tokens: 400,
-        mcp_servers: [{ type: 'url', url: 'https://mcp.notion.com/mcp', name: 'notion' }],
-        messages: [{ role: 'user', content:
-          `Create a new page in the NEXUS_SESSIONS database (data source ID: ${CONFIG.notion.sessionDsId}):
-Week: ${weekKey}
-Week Start Date: ${weekKey.replace('W','')}
-Overall Completion: ${(stats.pct||0)/100}
-Dispatches Earned: ${stats.dispatches||0}
-Perfect Week: ${(stats.pct||0) >= 100}
-Cycle Clears This Week: ${stats.cycles||0}
-Highlights: ${stats.highlight||''}
-Create now.` }]
-      })
-    });
-  } catch { queueOutbox({ type: 'session', data: { weekKey, stats }, ts: Date.now() }); }
-}
-
-function queueOutbox(item) {
-  const ob = JSON.parse(localStorage.getItem(OUTBOXK)||'[]');
-  if (ob.length >= 20) { setSyncStatus('err', ob.length + ' items pending — check connection'); return; }
-  ob.push(item); localStorage.setItem(OUTBOXK, JSON.stringify(ob));
-  setSyncStatus('err', ob.length + ' item' + (ob.length>1?'s':'') + ' pending sync');
-}
-
-async function flushOutbox() {
-  const ob = JSON.parse(localStorage.getItem(OUTBOXK)||'[]');
-  if (!ob.length) return;
-  const remaining = [];
-  for (const item of ob) {
-    try {
-      if (item.type === 'ach')     await pushAchToNotion(item.data);
-      if (item.type === 'session') await pushSessionToNotion(item.data.weekKey, item.data.stats);
-      if (item.type === 'lt')      await syncLTToNotion(item.data);
-    } catch { remaining.push(item); }
-  }
-  localStorage.setItem(OUTBOXK, JSON.stringify(remaining));
-  if (!remaining.length) setSyncStatus('ok', 'All items synced');
+// ── LOCAL SAVE INDICATOR ──
+// v5.15: Notion sync removed. The record-sync dot in the NEXUS RECORD
+// panel is repurposed as an on-device save indicator. setSyncStatus is
+// retained — it was already used for non-sync messages ("Cycle states
+// reset") and now reports local save state.
+function markSavedLocally() {
+  const t = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  setSyncStatus('ok', 'Saved locally · ' + t);
 }
 
 function setSyncStatus(state, msg) {
@@ -1424,12 +1329,7 @@ function setSyncStatus(state, msg) {
 }
 
 function initSyncStatus() {
-  const lt = getLT();
-  const hasActivity = (lt.totalTasksCompleted || 0) > 0;
-  setSyncStatus(
-    hasActivity ? 'idle' : 'idle',
-    hasActivity ? 'Complete a task to sync' : 'Complete a task to begin syncing'
-  );
+  setSyncStatus('idle', 'Local archive — data stored on this device');
 }
 
 // ── ACHIEVEMENT CHECKING ──
@@ -1454,7 +1354,7 @@ function checkAllAchievements() {
         try {
           if (a.check(s2, lt2)) {
             lt2.unlockedAch[a.id] = a.tier; changed = true;
-            showAchToast(a); pushAchToNotion(a);
+            showAchToast(a);
             if (a.tier === 'phantom') triggerPhantomFlash();
           }
         } catch {}
@@ -1548,7 +1448,6 @@ function checkWeekRollover() {
       <div class="ms"><div class="ms-val">${prevDisp}</div><div class="ms-lbl">Dispatches</div></div>
       <div class="ms"><div class="ms-val">${prevCyc}</div><div class="ms-lbl">Cycle Clears</div></div>`;
     document.getElementById('weekModal').classList.add('show');
-    pushSessionToNotion(prev, { pct: prevPct, dispatches: prevDisp, cycles: prevCyc });
   }
   localStorage.setItem(PREVWK, current);
 }
@@ -1560,7 +1459,7 @@ function closeModal(save) {
     if (!lt.highlights) lt.highlights = [];
     lt.highlights.push({ week: localStorage.getItem(PREVWK), text: highlight, date: new Date().toISOString() });
     saveLT(lt);
-    pushSessionToNotion(localStorage.getItem(PREVWK), { highlight });
+    markSavedLocally();
   }
   document.getElementById('weekModal').classList.remove('show');
   document.getElementById('modalHighlight').value = '';
@@ -1586,7 +1485,7 @@ function renderAchievements() {
   ].map(s => `<div class="record-stat"><div class="rs-val">${s.v}</div><div class="rs-lbl">${s.l}</div></div>`).join('');
 
   const syncMsgEl = document.getElementById('syncMsg');
-  if (syncMsgEl && (syncMsgEl.textContent === 'Connecting to archive…' || syncMsgEl.textContent === '')) {
+  if (syncMsgEl && (syncMsgEl.textContent === '—' || syncMsgEl.textContent === '')) {
     initSyncStatus();
   }
 
@@ -1965,12 +1864,13 @@ function render() {
 }
 
 // ── INIT ──
+// v5.15 migration: remove stranded Notion sync outbox entries (idempotent)
+try { localStorage.removeItem('nexus_v53_ob'); } catch {}
 updateStreak();
 checkWeekRollover();
 render();
 updateLT();
 initSyncStatus();
-setTimeout(flushOutbox, 3000);
 setTimeout(initDebugLongPress, 500);
 
 if ('serviceWorker' in navigator) {
