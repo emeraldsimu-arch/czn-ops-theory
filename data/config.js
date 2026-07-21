@@ -48,8 +48,9 @@
 //     verified). CZN Season 4 launch countdown is carried by the patches
 //     row, not duplicated as an event; add S4 seasonal event entries at the
 //     Jul 28 review once dates are known.
-//   - notion block RETAINED this pass — scheduled for deletion in v5.15
-//     step 2 (sync strip) alongside the app.js changes
+//   - notion block REMOVED — Notion sync deprecated and stripped from
+//     app.js in the same v5.15 release; nothing references these IDs.
+//     (Values preserved in git history if ever needed.)
 //   - pulls / weeklyYields / resetTimes: unchanged
 // Sources: official press releases (Smilegate, HoYoverse), Game8, Icy Veins,
 //   Sportskeeda, nanoka.cc, u7buy banner schedules — cross-checked Jul 20.
@@ -58,13 +59,6 @@
 const CONFIG = {
   version: '5.15',
   lastVerified: '2026-07-20',
-
-  notion: {
-    recordPageId:  '35d32a84-9d1c-8112-9240-e598022bf1c8',
-    recordDsId:    'eec1b2bd-1e5b-481d-874a-51d8bc6f4368',
-    achDsId:       '96027bdd-f9d5-4f27-8edc-78e147d49177',
-    sessionDsId:   '08655493-ca9f-456d-8165-ef138d50b152',
-  },
 
   resetTimes: {
     hsr: { dailyUTC: 10, weeklyDay: 1, weeklyUTC: 10 },
