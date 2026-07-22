@@ -1,3 +1,4 @@
+
 // ═══════════════════════════════════════════════════════════
 // NEXUS v5.15 — APP.JS
 // All application logic and state management. localStorage only.
@@ -6,15 +7,22 @@
 //   - Notion sync REMOVED (deprecated — could never authenticate
 //     from a static site). Deleted: syncLTToNotion, pushAchToNotion,
 //     pushSessionToNotion, queueOutbox, flushOutbox, the flushOutbox
-//     startup timer, and all four call sites (updateLT,
-//     checkAllAchievements, checkWeekRollover, closeModal).
+//     startup timer, the OUTBOXK constant, and all four call sites
+//     (updateLT, checkAllAchievements, checkWeekRollover, closeModal).
 //   - setSyncStatus KEPT and repurposed as the local save indicator.
 //     The record-sync dot now reads "Saved locally · <time>" after
 //     each state write via markSavedLocally(), and idles at
 //     "Local archive — data stored on this device".
 //   - One-time migration: stranded 'nexus_v53_ob' outbox entries are
 //     removed from localStorage at init (idempotent, runs every boot).
-//   - OUTBOXK storage key constant removed.
+//   - render() now writes the header logo version from CONFIG.version
+//     (#logoVer in index.html) — single source of truth, no drift.
+//   - NEW resolvePatchLabel() / resolveDeadline(): game cards read
+//     their patch label and end date from CONFIG.patches instead of
+//     hardcoded fields in games.js. This restores the patch-day rule
+//     (games.js had drifted 2 months / 3 patches behind config).
+//     deadlineSoon is now computed (⚠ inside 7 days) rather than a
+//     hand-maintained boolean that was wrong on two games.
 //   - Header repo-name typo fixed (Emereldsimu → emeraldsimu).
 // ═══════════════════════════════════════════════════════════
 
@@ -572,7 +580,7 @@ function resolvePatchLabel(gid) {
 
 function resolveDeadline(gid) {
   const p = CONFIG.patches.find(x => x.game === gid);
-  if (!p) return { text: null, soon: false };
+  if (!p) return { text: null, soon: false, days: null };
   const end = new Date(p.ends); end.setHours(0,0,0,0);
   const today = new Date(); today.setHours(0,0,0,0);
   const days = Math.ceil((end - today) / (1000*60*60*24));
@@ -597,7 +605,7 @@ function buildCard(g, s) {
   const pct   = Math.round(done / total * 100);
   const isComplete = pct >= 100;
 
- const dl        = resolveDeadline(g.id);
+  const dl        = resolveDeadline(g.id);
   const dlHTML    = dl.text ? `<div class="g-dl ${dl.soon?'soon':'ok'}">${dl.soon?'⚠ ':''}Ends ${dl.text}</div>` : '';
   const resetHTML = g.resetNote ? `<div class="g-reset-note">${g.resetNote}</div>` : '';
   const doneBadge = isComplete  ? `<span class="g-done-badge">✓ COMPLETE</span>` : '';
