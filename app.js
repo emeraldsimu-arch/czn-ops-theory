@@ -559,6 +559,30 @@ function buildUrgency() {
   document.getElementById('urgRow').innerHTML = html;
 }
 
+// ── PATCH LABEL / DEADLINE RESOLVERS ──
+// v5.15: game cards previously read hardcoded patch/deadline fields
+// from games.js, which drifted every patch (the patch-day rule says
+// only config.js changes). These derive that display from
+// CONFIG.patches instead, so games.js never needs a patch-day edit.
+function resolvePatchLabel(gid) {
+  const p = CONFIG.patches.find(x => x.game === gid);
+  if (!p) return '';
+  return p.label || ('VER ' + p.version);
+}
+
+function resolveDeadline(gid) {
+  const p = CONFIG.patches.find(x => x.game === gid);
+  if (!p) return { text: null, soon: false };
+  const end = new Date(p.ends); end.setHours(0,0,0,0);
+  const today = new Date(); today.setHours(0,0,0,0);
+  const days = Math.ceil((end - today) / (1000*60*60*24));
+  return {
+    text: end.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }),
+    soon: days >= 0 && days <= 7,
+    days,
+  };
+}
+
 // ── GAME CARDS ──
 function buildCard(g, s) {
   const a   = `var(${g.accent})`, d = `var(${g.dim})`;
@@ -573,7 +597,8 @@ function buildCard(g, s) {
   const pct   = Math.round(done / total * 100);
   const isComplete = pct >= 100;
 
-  const dlHTML    = g.deadline ? `<div class="g-dl ${g.deadlineSoon?'soon':'ok'}">${g.deadlineSoon?'⚠ ':''}Ends ${g.deadline}</div>` : '';
+ const dl        = resolveDeadline(g.id);
+  const dlHTML    = dl.text ? `<div class="g-dl ${dl.soon?'soon':'ok'}">${dl.soon?'⚠ ':''}Ends ${dl.text}</div>` : '';
   const resetHTML = g.resetNote ? `<div class="g-reset-note">${g.resetNote}</div>` : '';
   const doneBadge = isComplete  ? `<span class="g-done-badge">✓ COMPLETE</span>` : '';
   const patch     = CONFIG.patches.find(p => p.game === g.id);
@@ -620,7 +645,7 @@ function buildCard(g, s) {
         <div>
           <div class="g-pri">P${g.priority} Priority</div>
           <div class="g-name">${g.name}</div>
-          <div class="g-patch">${g.patch}</div>
+          <div class="g-patch">${resolvePatchLabel(g.id)}</div>
           ${dlHTML}${resetHTML}
         </div>
         <div class="g-right">
