@@ -1853,6 +1853,12 @@ function render() {
   const d = new Date(n); d.setDate(n.getDate() - (dow===0?6:dow-1));
   const e = new Date(d); e.setDate(d.getDate() + 6);
   const f = x => x.toLocaleDateString('en-US', { month:'short', day:'numeric' });
+
+  // v5.15: logo version rendered from CONFIG.version — single source of
+  // truth, can no longer drift from config/README/SW.
+  const lv = document.getElementById('logoVer');
+  if (lv) lv.textContent = 'v' + CONFIG.version;
+
   document.getElementById('weekLbl').textContent = `${f(d).toUpperCase()} — ${f(e).toUpperCase()}`;
   document.getElementById('footerDate').textContent = new Date().toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' }).toUpperCase();
   document.getElementById('gameGrid').innerHTML = GAMES.map(g => buildCard(g, s)).join('');
