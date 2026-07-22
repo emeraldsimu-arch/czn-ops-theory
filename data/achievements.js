@@ -1,17 +1,36 @@
 // ═══════════════════════════════════════════════════════════
-// NEXUS v5.6 — ACHIEVEMENTS
+// NEXUS v5.15 — ACHIEVEMENTS
 // SIGNAL → OPERATIVE → VANGUARD → PHANTOM
 // Weekly Dispatches (reset with week key)
-// Changes from v5.5:
-//   - o_event: condition redesigned — no longer uses criticalEventsCompleted
-//     (field was never written; achievement was permanently locked)
-//     New: complete all dailies for any one game on 3 separate days in a week
-//   - p_trailblaze: condition redesigned — no longer uses criticalEventsMissed
-//     (field was never written; achievement was permanently locked)
-//     New: complete all HSR dailies on 4 separate days AND all 4 HSR endgame
-//     modes cleared in the same week
-//   - Both conditions now read from lt.dailyCompletions[gid] which is
-//     written by updateLT() in app.js — single owner, always current
+// Changes from v5.6:
+//   - REMOVED the helper stub block at the bottom of this file.
+//     The stubs (totalDone, allDaily, cyclesDone, gPct, gamePct,
+//     allMats, spiralFull, hsrEndgameDone, wwEndgameDone,
+//     dispatchesDone, getv) were bare global function declarations
+//     that returned 0/false. They only ever worked because
+//     index.html loads this file BEFORE app.js, so app.js's real
+//     implementations overwrote them. If the script order in
+//     index.html were ever changed or a defer/async attribute
+//     added, every achievement would silently evaluate false
+//     forever — and the try/catch in checkAllAchievements() would
+//     hide it. Nothing imports this file standalone, so the stubs
+//     served no purpose. Deleted.
+//   - Normalized check() calls to match the real app.js signatures:
+//     cyclesDone(), hsrEndgameDone(), and wwEndgameDone() take NO
+//     arguments (they read getCy() directly). The extra `ws` args
+//     were ignored at runtime but were misleading.
+//   - No achievement conditions, names, or flavor text changed.
+//     PHANTOM names untouched per project rules.
+// ═══════════════════════════════════════════════════════════
+//
+// RUNTIME DEPENDENCY NOTE:
+// The check() functions below call helpers defined in app.js at
+// global scope: totalDone, allDaily, cyclesDone, gPct, gamePct,
+// allMats, spiralFull, hsrEndgameDone, wwEndgameDone,
+// dispatchesDone, getv, getCy, and the GAMES array from games.js.
+// index.html must keep loading data files BEFORE app.js, and
+// checkAllAchievements() only runs after DOM load, so all of these
+// resolve by the time any check() is evaluated.
 // ═══════════════════════════════════════════════════════════
 
 const DISPATCHES = [
@@ -27,9 +46,6 @@ const DISPATCHES = [
   { id: 'd_perfect', name: 'Nothing Left Undone',         condition: 'Hit 100% on all tasks across all games' },
 ];
 
-// NOTE ON HELPER FUNCTIONS:
-// totalDone, allDaily, cyclesDone etc. are defined in app.js in the same
-// global scope. Stubs below exist only for documentation / isolated testing.
 const ACHIEVEMENTS = [
 
   // ─────────── SIGNAL ───────────
@@ -49,7 +65,7 @@ const ACHIEVEMENTS = [
     id: 's_savedata', tier: 'signal', game: 'CZN', icon: '💾',
     name: 'Save Data: Entry 001',
     flavor: 'Every great run begins with a single entry.',
-    check: (ws, lt) => cyclesDone(ws) >= 1,
+    check: (ws, lt) => cyclesDone() >= 1,
   },
   {
     id: 's_waveplate', tier: 'signal', game: 'WW', icon: '🌊',
@@ -114,12 +130,11 @@ const ACHIEVEMENTS = [
     check: (ws, lt) => GAMES.filter(g => gamePct(g, ws) >= 75).length >= 2,
   },
   {
-    // Redesigned from v5.5 — previous condition used criticalEventsCompleted
+    // Redesigned in v5.6 — previous condition used criticalEventsCompleted
     // which was never written anywhere in the codebase (permanently locked).
-    // New condition: complete all dailies for any one game on 3 separate days
-    // in the current week. Reads lt.dailyCompletions[gid] (flat integer, written
-    // by updateLT() — resets each Monday with the week key).
-    // Fits flavor: "The Window Did Not Close" — consistent daily attention.
+    // Current condition: complete all dailies for any one game on 3 separate
+    // days in the current week. Reads lt.dailyCompletions[gid] (flat integer,
+    // written by updateLT() — resets each Monday with the week key).
     id: 'o_event', tier: 'operative', game: 'ALL', icon: '🗓',
     name: 'The Window Did Not Close',
     flavor: 'Someone told you it was expiring. You listened.',
@@ -138,13 +153,13 @@ const ACHIEVEMENTS = [
     id: 'o_hsr4', tier: 'operative', game: 'HSR', icon: '💫',
     name: 'Four Paths, All Walked',
     flavor: 'MoC. Pure Fiction. Apocalyptic Shadow. Anomaly Arbitration. Done.',
-    check: (ws, lt) => hsrEndgameDone(ws),
+    check: (ws, lt) => hsrEndgameDone(),
   },
   {
     id: 'o_ww2', tier: 'operative', game: 'WW', icon: '🌀',
     name: 'The Wastes Yield',
     flavor: "Two of WW's hardest modes in the same rotation.",
-    check: (ws, lt) => wwEndgameDone(ws),
+    check: (ws, lt) => wwEndgameDone(),
   },
 
   // ─────────── VANGUARD ───────────
@@ -173,10 +188,12 @@ const ACHIEVEMENTS = [
     check: (ws, lt) => (lt.totalCycleClears || 0) >= 25,
   },
   {
+    // weekly[0] is the tacet discord boss task in games.js WW weekly array.
+    // Index corrected in v5.6 after ww_tg moved to endgameModes.
     id: 'v_tacet', tier: 'vanguard', game: 'WW', icon: '🎵',
     name: 'Tacet Discord, Silenced Weekly',
     flavor: "The discord doesn't stop generating. You kept pace with it.",
-    check: (ws, lt) => getv(ws, 'ww', 'weekly', 0), // tacet boss ×3 cap — weekly[0] after ww_tg removal
+    check: (ws, lt) => getv(ws, 'ww', 'weekly', 0),
   },
   {
     id: 'v_memory', tier: 'vanguard', game: 'HSR', icon: '💭',
@@ -223,19 +240,17 @@ const ACHIEVEMENTS = [
     check: (ws, lt) => (lt.hsrLifetimeCycleClears || 0) >= 12,
   },
   {
-    // Redesigned from v5.5 — previous condition used criticalEventsCompleted
+    // Redesigned in v5.6 — previous condition used criticalEventsCompleted
     // and criticalEventsMissed, neither of which was ever written anywhere
     // in the codebase (permanently locked at 0).
-    // New condition: complete all HSR dailies on 4 separate days in a week
+    // Current condition: complete all HSR dailies on 4 separate days in a week
     // AND all 4 HSR endgame modes cleared that same week.
-    // Reads lt.dailyCompletions.hsr (flat integer, written by updateLT) and
-    // getCy() for modes. Appropriately hard for PHANTOM tier.
     id: 'p_trailblaze', tier: 'phantom', game: 'HSR', icon: '✨',
     name: 'The Trailblaze Continues',
     flavor: "The Trailblaze isn't a title the Express gives you. It's what remains after everything else has been stripped away.",
     check: (ws, lt) => {
       const hsrDailyDays = (lt.dailyCompletions || {}).hsr || 0;
-      return hsrDailyDays >= 4 && hsrEndgameDone(ws);
+      return hsrDailyDays >= 4 && hsrEndgameDone();
     },
   },
   {
@@ -266,19 +281,5 @@ const ACHIEVEMENTS = [
     check: (ws, lt) => (lt.totalPerfectWeeks || 0) >= 8 && GAMES.every(g => gamePct(g, ws) >= 100),
   },
 ];
-
-// ── Helper stubs ──
-// Real implementations in app.js resolve via shared global scope at runtime.
-function totalDone(ws) { return 0; }
-function allDaily(gid, ws) { return false; }
-function cyclesDone(ws) { return 0; }
-function gPct(ws) { return 0; }
-function gamePct(g, ws) { return 0; }
-function allMats(ws) { return false; }
-function spiralFull(ws) { return false; }
-function hsrEndgameDone(ws) { return false; }
-function wwEndgameDone(ws) { return false; }
-function dispatchesDone(ws, lt) { return 0; }
-function getv(ws, gid, type, idx) { return false; }
 
 if (typeof module !== 'undefined') { module.exports = { DISPATCHES, ACHIEVEMENTS }; }
