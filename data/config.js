@@ -67,24 +67,19 @@ const CONFIG = {
     czn: { dailyUTC: 18, weeklyDay: 0, weeklyUTC: 18 },
   },
 
-  patches: [
+ patches: [
     // CZN: Season 3 ended at Jul 8 maintenance; Season 4 "Shattered Light
     // and Claw" (Galactic Disaster arc — Hilde, Arabella, Olga) lands Jul 28.
     // This row counts down the interim to S4 launch.
-    { game: 'czn', version: 'Pre-S4 (S4: Shattered Light and Claw)', ends: '2026-07-28', resetDay: 0 },
+    { game: 'czn', version: 'Pre-S4', label: 'SEASON 4 INCOMING — SHATTERED LIGHT AND CLAW', ends: '2026-07-28', resetDay: 0 },
     // WW 3.5 "Blade of Past Resounds, Lingering Dream Hymns" — Jul 10–Aug 19.
-    // Phase 1: Yangyang: Xuanling + Lynae/Luuk reruns (to Jul 30).
-    // Phase 2: Suisui + Aemeath rerun, Jul 30 → Aug 19.
-    { game: 'ww',  version: '3.5',      ends: '2026-08-19', resetDay: 1 },
-    // HSR 4.4 "In Ravages Does the Whistle Sound" — NA Jul 14 → Aug 25
-    // (global Aug 26). Phase 1 to Aug 5; Phase 2 Aug 5–25. Himeko Nova
-    // banner runs the full version.
-    { game: 'hsr', version: '4.4',      ends: '2026-08-25', resetDay: 1 },
-    // ZZZ 3.0 "A Sleepwalker's Confession" — Jun 17 → Jul 28. v3.1 "The
-    // Long Goodbye" (2nd anniversary) launches Jul 29 → ~Sep 8.
-    { game: 'zzz', version: '3.0',      ends: '2026-07-28', resetDay: 1 },
+    { game: 'ww',  version: '3.5', label: 'VER 3.5 — BLADE OF PAST RESOUNDS', ends: '2026-08-19', resetDay: 1 },
+    // HSR 4.4 "In Ravages Does the Whistle Sound" — NA Jul 14 → Aug 25.
+    { game: 'hsr', version: '4.4', label: 'VER 4.4 — IN RAVAGES DOES THE WHISTLE SOUND', ends: '2026-08-25', resetDay: 1 },
+    // ZZZ 3.0 "A Sleepwalker's Confession" — Jun 17 → Jul 28.
+    { game: 'zzz', version: '3.0', label: "VER 3.0 — A SLEEPWALKER'S CONFESSION", ends: '2026-07-28', resetDay: 1 },
   ],
-
+  
   cycles: {
     // HSR v4.4 endgame calendar (per Sportskeeda 4.4 endgame article):
     // AA refreshed Jul 15 with the version (NOT Jul 13 as previously
