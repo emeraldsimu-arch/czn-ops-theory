@@ -1,15 +1,23 @@
 // ═══════════════════════════════════════════════════════════
-// NEXUS v5.14 — GAME DATA
+// NEXUS v5.15 — GAME DATA
 // Task lists, endgame modes, calendar plan
-// Last verified: 2026-05-15 (Game8, Icy Veins, Fandom wiki, BitTopup)
-// Changes from v5.13:
-//   - WEEK_PLAN tasks that correspond to tracked cycle modes now
-//     carry an optional cycleKey field. renderWeekStrip() uses
-//     these to subtract cleared cycles from each day's dynamic
-//     load calculation.
-//   - FRI ZZZ entry split: was "Shiyu Defense / Deadly Assault"
-//     (one task, two cycles). Now two separate entries with
-//     individual cycleKey fields for accurate bar math.
+// Last verified: 2026-07-20
+// Changes from v5.14:
+//   - PATCH-DAY RULE FIX. The hardcoded `patch`, `deadline`, and
+//     `deadlineSoon` fields duplicated data config already owns,
+//     so they silently rotted (this file was 2 months / 3 patches
+//     stale while config.js looked current). They are now DERIVED
+//     from CONFIG.patches at render time — see resolvePatchLabel()
+//     and resolveDeadline() in app.js. Do not re-add them here.
+//   - Patch version display now lives in CONFIG.patches[].label.
+//   - Removed expired event tasks: WW Cyberpunk collab (ended
+//     Jul 9), HSR free Huohuo/Robin claim (ended Jun 1), ZZZ v2.8
+//     "Operation: Save Bootopia" (ended Jun 10).
+//   - Replaced the two hardcoded "Anniversary event missions"
+//     dailies with generic "current event missions" rows that do
+//     not need editing every patch.
+//   - ww_em endgame label: "v3.3 phase" → "current phase"
+//     (the version is now read from config).
 // ═══════════════════════════════════════════════════════════
 
 const GAMES = [
@@ -18,9 +26,7 @@ const GAMES = [
     name: 'CHAOS ZERO NIGHTMARE',
     short: 'CZN',
     priority: 1,
-    patch: 'SEASON 3 — A SONG RIPPLING THROUGH THE STARS',
-    deadline: 'Jul 8, 2026',
-    deadlineSoon: false,
+    // patch / deadline / deadlineSoon are DERIVED from CONFIG.patches
     accent: '--czn',
     dim: '--czn-dim',
     dailyLoad: 0.3,
@@ -61,9 +67,6 @@ const GAMES = [
     name: 'WUTHERING WAVES',
     short: 'WW',
     priority: 2,
-    patch: 'VER 3.3 — 2ND ANNIVERSARY',
-    deadline: 'Jun 7, 2026',
-    deadlineSoon: true,
     accent: '--ww',
     dim: '--ww-dim',
     dailyLoad: 0.4,
@@ -75,18 +78,18 @@ const GAMES = [
       { t: 'Spend Waveplates on Echo / material farming', tag: 'res', jade: 60 },
       { t: 'Complete daily Guidebook activities (100 Activity Points)', tag: 'res', jade: 0 },
       { t: 'Claim daily login reward', tag: 'res', jade: 0 },
-      { t: 'Anniversary event missions', tag: 'event', jade: 0 },
+      { t: 'Current event missions — see Events panel', tag: 'event', jade: 0 },
     ],
 
     weekly: [
       { t: 'Weekly tacet discord boss materials ×3 cap', tag: 'mat', jade: 0 },
-      { t: 'Cyberpunk Edgerunners collab event', tag: 'event', jade: 0, deadline: 'Jun 7' },
+      { t: 'Weekly event progress — check current patch events', tag: 'event', jade: 0 },
     ],
 
     endgameModes: [
       { id: 'ww_toa', name: 'Tower of Adversity (all zones incl. Hazard Zone)', cycleKey: 'ww_toa' },
       { id: 'ww_ww',  name: 'Whimpering Wastes',                                cycleKey: 'ww_ww'  },
-      { id: 'ww_em',  name: 'Endstate Matrix (v3.3 phase)',                     cycleKey: 'ww_em'  },
+      { id: 'ww_em',  name: 'Endstate Matrix (current phase)',                  cycleKey: 'ww_em'  },
       { id: 'ww_tg',  name: 'Fantasies of Thousand Gateways',                   cycleKey: 'ww_tg'  },
     ],
   },
@@ -96,9 +99,6 @@ const GAMES = [
     name: 'HONKAI: STAR RAIL',
     short: 'HSR',
     priority: 3,
-    patch: 'VER 4.2 — 3RD ANNIVERSARY',
-    deadline: 'Jun 1, 2026',
-    deadlineSoon: true,
     accent: '--hsr',
     dim: '--hsr-dim',
     dailyLoad: 0.4,
@@ -110,14 +110,14 @@ const GAMES = [
       { t: 'Spend Trailblaze Power (stamina)', tag: 'res', jade: 60 },
       { t: 'Complete Daily Training missions (×4)', tag: 'res', jade: 0 },
       { t: 'Collect Assignments', tag: 'res', jade: 0 },
-      { t: 'Anniversary event missions', tag: 'event', jade: 0 },
+      { t: 'Current event missions — see Events panel', tag: 'event', jade: 0 },
     ],
 
     weekly: [
       { t: 'Echo of War — weekly boss ×3 (material cap)', tag: 'mat', jade: 0 },
       { t: 'Simulated Universe / Currency Wars — Accumulated Points cap', tag: 'weekly', jade: 225 },
       { t: 'Nameless Honor — weekly missions', tag: 'weekly', jade: 0 },
-      { t: 'Claim free Huohuo or Robin (ends Jun 1)', tag: 'prog', jade: 0, deadline: 'Jun 1' },
+      { t: 'Check limited-time claims & event deadlines', tag: 'prog', jade: 0 },
     ],
 
     endgameModes: [
@@ -133,9 +133,6 @@ const GAMES = [
     name: 'ZENLESS ZONE ZERO',
     short: 'ZZZ',
     priority: 4,
-    patch: 'VER 2.8 — NEW ERIDAN SUNSET',
-    deadline: 'Jun 10, 2026',
-    deadlineSoon: false,
     accent: '--zzz',
     dim: '--zzz-dim',
     dailyLoad: 0.2,
@@ -154,7 +151,7 @@ const GAMES = [
       { t: 'Notorious Hunts — 3 free attempts (resets Monday)', tag: 'mat', jade: 0 },
       { t: 'Ridu Weekly — complete all tasks (105 Polychrome)', tag: 'weekly', jade: 105 },
       { t: 'New Eridu City Fund — weekly mission progress', tag: 'weekly', jade: 0 },
-      { t: 'v2.8 event missions — Operation: Save Bootopia', tag: 'event', jade: 0, deadline: 'Jun 10' },
+      { t: 'Current patch event missions — see Events panel', tag: 'event', jade: 0 },
     ],
 
     endgameModes: [
