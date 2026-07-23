@@ -1,11 +1,10 @@
 /* ═══════════════════════════════════════════════════════════
-   NEXUS v5.13 — STYLE
+   NEXUS v5.16 — STYLE
    Neon bounty hunter cockpit aesthetic
    Fonts: Orbitron / Syne / JetBrains Mono
-   Changes from v5.12:
-     - Weekly planner day expansion: .ws-day tappable,
-       .ws-selected state, .ws-chevron indicator,
-       .ws-day-detail panel with full task list
+   Changes from v5.13:
+     - v5.16: Local Archive Backup panel styles appended at end
+       (.record-backup and children). No existing rules modified.
    ═══════════════════════════════════════════════════════════ */
 
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Syne:wght@400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap');
@@ -1403,6 +1402,39 @@ body::after {
 #footerVer:active { color: var(--text-mid); }
 .fresh-status { display: flex; align-items: center; gap: 5px; }
 .fstatus-dot { width: 5px; height: 5px; border-radius: 50%; }
+
+/* ── LOCAL ARCHIVE BACKUP (v5.16) ──
+   Sits below .record-sync inside the NEXUS RECORD panel.
+   localStorage is the only copy of the record, so this panel
+   is deliberately prominent — the age label turns amber at
+   14 days and red if a backup has never been taken.
+   ──────────────────────────────────────────────────────── */
+.record-backup {
+  margin-top: 12px; padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+.rb-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+.rb-title {
+  font-family: 'Orbitron', monospace; font-size: 8px; letter-spacing: 2px;
+  color: var(--text-dim); text-transform: uppercase;
+}
+.rb-age { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--text-dim); }
+.rb-age.stale { color: var(--warn); }
+.rb-age.never { color: var(--danger); }
+.rb-note {
+  font-family: 'JetBrains Mono', monospace; font-size: 8px;
+  color: var(--text-dim); line-height: 1.4; margin-bottom: 8px; opacity: .7;
+}
+.rb-btns { display: flex; gap: 8px; }
+.rb-btn {
+  flex: 1; font-family: 'Syne', sans-serif; font-size: 10px; font-weight: 600;
+  letter-spacing: 1px; padding: 8px 10px; border-radius: 3px;
+  cursor: pointer; transition: all .2s; background: none;
+  border: 1px solid var(--border2); color: var(--text-mid);
+}
+.rb-btn:hover { color: var(--text-bright); border-color: var(--border3); }
+.rb-export:hover { color: var(--ok); border-color: rgba(74,222,128,.4); }
+.rb-import:hover { color: var(--warn); border-color: rgba(255,179,71,.4); }
 
 /* ── RESPONSIVE ── */
 @media (max-width: 700px) {
