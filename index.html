@@ -480,7 +480,7 @@ pinInit();
 </div>
 
 <div class="wrap">
- <header class="site-header">
+  <header class="site-header">
     <div class="logo">NEX<span class="logo-accent">U</span>S<span class="logo-ver" id="logoVer"></span></div>
     <div class="hdr-right">
       <span class="week-lbl" id="weekLbl"></span>
@@ -578,6 +578,19 @@ pinInit();
         <div class="sync-dot" id="syncDot"></div>
         <span id="syncMsg">—</span>
       </div>
+      <!-- v5.16: Local Archive Backup — localStorage is the only copy -->
+      <div class="record-backup">
+        <div class="rb-hdr">
+          <span class="rb-title">Local Archive Backup</span>
+          <span class="rb-age" id="rbAge">—</span>
+        </div>
+        <div class="rb-note">This device holds the only copy of your NEXUS RECORD. Export regularly.</div>
+        <div class="rb-btns">
+          <button class="rb-btn rb-export" onclick="exportBackup()">↓ Export Backup</button>
+          <button class="rb-btn rb-import" onclick="document.getElementById('importFile').click()">↑ Import</button>
+        </div>
+        <input type="file" id="importFile" accept="application/json,.json" style="display:none" onchange="handleImportFile(event)">
+      </div>
     </div>
     <div class="dispatch-section">
       <div class="sec-hdr" style="margin-bottom:10px">This Week's Dispatches</div>
@@ -596,7 +609,7 @@ pinInit();
   </footer>
 </div>
 
-<!-- DATA FILES (order matters) -->
+<!-- DATA FILES (order matters — app.js depends on CONFIG, GAMES, ACHIEVEMENTS) -->
 <script src="data/config.js"></script>
 <script src="data/games.js"></script>
 <script src="data/achievements.js"></script>
