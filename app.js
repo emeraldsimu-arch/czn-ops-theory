@@ -1,29 +1,28 @@
 
 // ═══════════════════════════════════════════════════════════
-// NEXUS v5.15 — APP.JS
+// NEXUS v5.16 — APP.JS
 // All application logic and state management. localStorage only.
 // GitHub: emeraldsimu-arch/czn-ops-theory
-// Changes from v5.14:
-//   - Notion sync REMOVED (deprecated — could never authenticate
-//     from a static site). Deleted: syncLTToNotion, pushAchToNotion,
-//     pushSessionToNotion, queueOutbox, flushOutbox, the flushOutbox
-//     startup timer, the OUTBOXK constant, and all four call sites
-//     (updateLT, checkAllAchievements, checkWeekRollover, closeModal).
-//   - setSyncStatus KEPT and repurposed as the local save indicator.
-//     The record-sync dot now reads "Saved locally · <time>" after
-//     each state write via markSavedLocally(), and idles at
-//     "Local archive — data stored on this device".
-//   - One-time migration: stranded 'nexus_v53_ob' outbox entries are
-//     removed from localStorage at init (idempotent, runs every boot).
-//   - render() now writes the header logo version from CONFIG.version
-//     (#logoVer in index.html) — single source of truth, no drift.
-//   - NEW resolvePatchLabel() / resolveDeadline(): game cards read
-//     their patch label and end date from CONFIG.patches instead of
-//     hardcoded fields in games.js. This restores the patch-day rule
-//     (games.js had drifted 2 months / 3 patches behind config).
-//     deadlineSoon is now computed (⚠ inside 7 days) rather than a
-//     hand-maintained boolean that was wrong on two games.
-//   - Header repo-name typo fixed (Emereldsimu → emeraldsimu).
+// Changes from v5.15:
+//   - NEW: Local Archive Backup. exportBackup() serialises every
+//     nexus_v53* key to a timestamped JSON file; handleImportFile()
+//     + applyImport() restore it. Import REPLACES all tracked keys
+//     (double-confirmed, with a summary of the backup's contents).
+//     The PIN (nexus_pin) is deliberately EXCLUDED so the backup file
+//     carries no credential. renderBackupAge() shows a "backed up Nd
+//     ago" label that turns amber at 14 days.
+//   - NEW storage key BAKK ('nexus_v53_bak') — last backup timestamp.
+//   - totalTasksCompleted: Math.max → true delta accumulator. The old
+//     form froze at the best single week (it compared a lifetime field
+//     against a weekly count). Now tracks _ltSeenWeek/_ltSeenCount and
+//     adds only the positive difference. Existing stored value is kept
+//     as the opening balance — history before v5.16 is not recovered,
+//     by design.
+//   - NEW recordCycleClear(): single owner for totalCycleClears and
+//     *LifetimeCycleClears. togCy() and sessionToggleCycle() both
+//     incremented these directly, which violated the one-writer rule in
+//     HANDOFF §8. Behaviour unchanged; the write now lives in one place.
+//   - renderAchievements() calls renderBackupAge().
 // ═══════════════════════════════════════════════════════════
 
 // ── STORAGE KEYS ──
@@ -38,6 +37,7 @@ const CURK    = 'nexus_v53_cur';
 const PITYK   = 'nexus_v53_pity';
 const GUARK   = 'nexus_v53_guar';
 const FDK     = 'nexus_v53_fd';
+const BAKK    = 'nexus_v53_bak';   // v5.16: last backup timestamp
 
 // ── WEEK KEY ──
 function wk(gameId) {
@@ -728,6 +728,22 @@ function togT(gid, type, idx, el, ev) {
   }
 }
 
+// ── CYCLE CLEAR RECORDER ──
+// v5.16: single owner for totalCycleClears and *LifetimeCycleClears.
+// Previously both togCy() and sessionToggleCycle() incremented these
+// directly — two writers on fields HANDOFF §8 declares single-owner.
+// Behaviour is unchanged; the write now lives in one place. See §8.
+function recordCycleClear(cycleKey) {
+  const lt = getLT();
+  const g  = GAMES.find(g => g.endgameModes.some(m => m.cycleKey === cycleKey));
+  if (g) {
+    const gameKey = g.id + 'LifetimeCycleClears';
+    lt[gameKey] = (lt[gameKey] || 0) + 1;
+  }
+  lt.totalCycleClears = (lt.totalCycleClears || 0) + 1;
+  saveLT(lt);
+}
+
 function togCy(k, el) {
   const cyConf   = CONFIG.cycles[k];
   const isWeekly = cyConf?.type === 'weekly';
@@ -739,16 +755,7 @@ function togCy(k, el) {
 
   el.classList.toggle('cleared');
 
-  if (nowCleared) {
-    const lt = getLT();
-    const g  = GAMES.find(g => g.endgameModes.some(m => m.cycleKey === k));
-    if (g) {
-      const gameKey = g.id + 'LifetimeCycleClears';
-      lt[gameKey] = (lt[gameKey] || 0) + 1;
-    }
-    lt.totalCycleClears = (lt.totalCycleClears || 0) + 1;
-    saveLT(lt);
-  }
+  if (nowCleared) recordCycleClear(k);
 
   buildUrgency(); buildTodayPanel(); updateGlobals(); checkAllAchievements(); updateLT();
   const g = GAMES.find(g => g.endgameModes.some(m => m.cycleKey === k));
@@ -1024,14 +1031,9 @@ function sessionToggleCycle(cycleKey, btn) {
   if (isWeekly) setCyWeekly(cycleKey, true);
   else          setCy(cycleKey, true);
 
-  const lt = getLT();
-  const g  = GAMES.find(g => g.endgameModes.some(m => m.cycleKey === cycleKey));
-  if (g) {
-    const gameKey = g.id + 'LifetimeCycleClears';
-    lt[gameKey] = (lt[gameKey] || 0) + 1;
-  }
-  lt.totalCycleClears = (lt.totalCycleClears || 0) + 1;
-  saveLT(lt);
+  // v5.16: shared writer — see recordCycleClear() and HANDOFF §8
+  recordCycleClear(cycleKey);
+  const g = GAMES.find(g => g.endgameModes.some(m => m.cycleKey === cycleKey));
 
   buildUrgency(); buildTodayPanel(); updateGlobals(); checkAllAchievements(); updateLT();
   if (g) {
@@ -1305,16 +1307,34 @@ function updateCurrencyEarned(gid) {
 }
 
 // ── LIFETIME STATS ──
+// v5.16: totalTasksCompleted switched from Math.max (which froze at the
+// best single week) to a true delta accumulator. _ltSeenCount holds the
+// week-count last folded in; each call adds only the positive difference,
+// and the snapshot resets at week rollover so a new week's first task
+// isn't read as a negative delta. Single owner (updateLT) preserved —
+// see HANDOFF §8.
 function updateLT() {
   const s  = wsFull();
   const lt = getLT();
   if (!lt.deployDate) lt.deployDate = new Date().toISOString().slice(0, 10);
 
-  lt.totalTasksCompleted = Math.max(lt.totalTasksCompleted || 0, totalDone(s));
+  const weekKey = wk();
+
+  // Delta accumulator for lifetime task count
+  if (lt._ltSeenWeek !== weekKey) {
+    lt._ltSeenWeek  = weekKey;
+    lt._ltSeenCount = 0;
+  }
+  const currentCount = totalDone(s);
+  const delta = Math.max(0, currentCount - (lt._ltSeenCount || 0));
+  if (delta > 0) {
+    lt.totalTasksCompleted = (lt.totalTasksCompleted || 0) + delta;
+  }
+  lt._ltSeenCount = currentCount;
+
   lt.currentStreak = getStreak();
   lt.longestStreak = Math.max(lt.longestStreak || 0, getStreak());
 
-  const weekKey = wk();
   if (!lt.dailyCompletions || lt.dailyCompletions._week !== weekKey) {
     lt.dailyCompletions = { _week: weekKey };
   }
@@ -1363,6 +1383,132 @@ function setSyncStatus(state, msg) {
 
 function initSyncStatus() {
   setSyncStatus('idle', 'Local archive — data stored on this device');
+}
+
+// ── LOCAL ARCHIVE BACKUP (v5.16) ──
+// localStorage is the only copy of the NEXUS RECORD. These functions
+// export every nexus_v53* key as a single timestamped JSON file and
+// restore it. The PIN (nexus_pin) is deliberately EXCLUDED — the file
+// carries no credential, so a restore re-enters the PIN at the gate.
+// Import REPLACES all tracked keys (confirmed twice); merge semantics
+// for divergent lifetime stats would be guesswork.
+
+const BACKUP_KEYS = [
+  SK, LTK, NK, CNK, QNK, STRK, PREVWK, CURK, PITYK, GUARK, FDK,
+];
+const BACKUP_FORMAT = 1;
+
+function exportBackup() {
+  try {
+    const payload = {
+      _format:    BACKUP_FORMAT,
+      _app:       'NEXUS',
+      _version:   CONFIG.version,
+      _exported:  new Date().toISOString(),
+      data: {},
+    };
+    BACKUP_KEYS.forEach(k => {
+      const v = localStorage.getItem(k);
+      if (v !== null) payload.data[k] = v;
+    });
+
+    const stamp = new Date().toISOString().slice(0, 10);
+    const blob  = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url   = URL.createObjectURL(blob);
+    const a     = document.createElement('a');
+    a.href = url;
+    a.download = `nexus-backup-${stamp}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+    try { localStorage.setItem(BAKK, new Date().toISOString()); } catch {}
+    renderBackupAge();
+    setSyncStatus('ok', 'Backup exported · ' + stamp);
+  } catch (e) {
+    setSyncStatus('err', 'Export failed — try again');
+  }
+}
+
+function handleImportFile(ev) {
+  const file = ev.target.files && ev.target.files[0];
+  ev.target.value = '';           // allow re-selecting the same file
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    let payload;
+    try {
+      payload = JSON.parse(reader.result);
+    } catch {
+      alert('That file could not be read as JSON. Make sure it is a NEXUS backup file.');
+      return;
+    }
+    applyImport(payload);
+  };
+  reader.onerror = () => alert('Could not read that file.');
+  reader.readAsText(file);
+}
+
+function applyImport(payload) {
+  // Validate shape before touching anything
+  if (!payload || payload._app !== 'NEXUS' || !payload.data || typeof payload.data !== 'object') {
+    alert('That does not look like a NEXUS backup file. Nothing was changed.');
+    return;
+  }
+  if (payload._format > BACKUP_FORMAT) {
+    alert('That backup was made by a newer version of NEXUS than this one. Nothing was changed.');
+    return;
+  }
+
+  const keys = Object.keys(payload.data).filter(k => BACKUP_KEYS.includes(k));
+  if (!keys.length) {
+    alert('That backup contains no NEXUS data. Nothing was changed.');
+    return;
+  }
+
+  // Summarise what is coming in so the confirmation is informed
+  let summary = '';
+  try {
+    const lt = JSON.parse(payload.data[LTK] || '{}');
+    summary = `\n\nBackup contains:\n· ${lt.totalTasksCompleted || 0} tasks completed\n· ${lt.totalCycleClears || 0} cycle clears\n· ${Object.keys(lt.unlockedAch || {}).length} achievements\n· Best streak ${lt.longestStreak || 0}`;
+  } catch {}
+
+  const when = payload._exported ? payload._exported.slice(0, 10) : 'unknown date';
+  if (!confirm(`Restore backup from ${when}?\n\nThis REPLACES all current NEXUS data on this device — tasks, cycle clears, lifetime stats, achievements, currency, and notes.${summary}`)) return;
+  if (!confirm('This cannot be undone. Restore now?')) return;
+
+  try {
+    // Clear tracked keys first so anything absent from the backup is
+    // genuinely removed rather than left behind as a stale remnant.
+    BACKUP_KEYS.forEach(k => { try { localStorage.removeItem(k); } catch {} });
+    keys.forEach(k => localStorage.setItem(k, payload.data[k]));
+  } catch (e) {
+    alert('Restore failed partway through. Your data may be incomplete — re-import the backup file.');
+    return;
+  }
+
+  alert('Restore complete. NEXUS will reload.');
+  location.reload();
+}
+
+function renderBackupAge() {
+  const el = document.getElementById('rbAge');
+  if (!el) return;
+  let last = null;
+  try { last = localStorage.getItem(BAKK); } catch {}
+
+  if (!last) {
+    el.textContent = 'Never backed up';
+    el.className = 'rb-age never';
+    return;
+  }
+  const days = Math.floor((Date.now() - new Date(last)) / 86400000);
+  el.textContent = days <= 0 ? 'Backed up today'
+    : days === 1 ? 'Backed up yesterday'
+    : `Backed up ${days}d ago`;
+  el.className = 'rb-age' + (days >= 14 ? ' stale' : '');
 }
 
 // ── ACHIEVEMENT CHECKING ──
@@ -1521,6 +1667,8 @@ function renderAchievements() {
   if (syncMsgEl && (syncMsgEl.textContent === '—' || syncMsgEl.textContent === '')) {
     initSyncStatus();
   }
+
+  renderBackupAge();   // v5.16
 
   const dg = document.getElementById('dispatchGrid');
   if (dg) dg.innerHTML = DISPATCHES.map(d => {
