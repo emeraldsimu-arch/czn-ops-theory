@@ -1,11 +1,23 @@
 // ═══════════════════════════════════════════════════════════
-// NEXUS v5.15 — CONFIG
+// NEXUS v5.16 — CONFIG
 // ── THIS IS THE ONLY FILE THAT NEEDS UPDATING ON PATCH DAY ──
 // Last verified: 2026-07-20
 // Next review: 2026-07-24 (ZZZ Shiyu rolls to Aug 7 window — small edit)
 //   ── then a BIG review 2026-07-28/29: CZN Season 4 launches Jul 28,
 //      ZZZ 3.1 launches Jul 29, ZZZ Deadly Assault rolls ~Jul 31.
 //      Combine into one Jul 28 pass if a 4-day-stale Shiyu row is acceptable.
+//      DECIDED 2026-07-25: combining. The Jul 24 Shiyu row is deliberately
+//      left stale until Jul 28 — the ⚠ banner correctly reports this.
+//
+// ── OUT-OF-BAND EDIT 2026-07-25 (version metadata only, NO date changes) ──
+//   The v5.16 code (Local Archive Backup, recordCycleClear, totalTasks-
+//   Completed delta accumulator) shipped Jul 22-23 but CONFIG.version was
+//   never bumped, so the logo rendered "v5.15" on a v5.16 build. Corrected:
+//     - version: '5.15' → '5.16'
+//     - header title: v5.15 → v5.16
+//   lastVerified, patches, cycles, events, pulls, weeklyYields and
+//   resetTimes are ALL UNCHANGED. This was not a patch pass.
+//
 // Changes from 2026-06-29 verify:
 //   - version: 5.14 → 5.15 (assumes full v5.15 release ships as one commit
 //     set; revert to '5.14' if pushing config ahead of the rest)
@@ -57,7 +69,7 @@
 // ═══════════════════════════════════════════════════════════
 
 const CONFIG = {
-  version: '5.15',
+  version: '5.16',
   lastVerified: '2026-07-20',
 
   resetTimes: {
