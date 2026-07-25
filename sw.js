@@ -1,7 +1,12 @@
 // ═══════════════════════════════════════════════════════════
-// NEXUS v5.15 — SERVICE WORKER
+// NEXUS v5.16 — SERVICE WORKER
 // Stale-while-revalidate. Bump CACHE_NAME whenever any file
 // outside data/ changes.
+// Changes from v5.15:
+//   - CACHE_NAME: nexus-v515-static → nexus-v516-static
+//     (owed from the v5.16 release — app.js, index.html and style.css
+//     all changed Jul 22-23 without a bump; corrected 2026-07-25)
+//   - No logic changes.
 // Changes from v5.11:
 //   - CACHE_NAME: nexus-v511-static → nexus-v515-static
 //   - Restored icons/icon-192.png and icons/icon-512.png to the
@@ -14,7 +19,7 @@
 //   - fetch: opaque/error responses no longer poison the cache
 // ═══════════════════════════════════════════════════════════
 
-const CACHE_NAME = 'nexus-v515-static';
+const CACHE_NAME = 'nexus-v516-static';
 
 const ASSETS = [
   '/czn-ops-theory/',
