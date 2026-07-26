@@ -1411,8 +1411,10 @@ function exportBackup() {
       const v = localStorage.getItem(k);
       if (v !== null) payload.data[k] = v;
     });
-
-    const stamp = new Date().toISOString().slice(0, 10);
+    
+const d = new Date();
+const stamp = new Date(d.getTime() - d.getTimezoneOffset() * 60000)
+  .toISOString().slice(0, 10);
     const blob  = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     const url   = URL.createObjectURL(blob);
     const a     = document.createElement('a');
@@ -1457,10 +1459,10 @@ function applyImport(payload) {
     alert('That does not look like a NEXUS backup file. Nothing was changed.');
     return;
   }
-  if (payload._format > BACKUP_FORMAT) {
-    alert('That backup was made by a newer version of NEXUS than this one. Nothing was changed.');
-    return;
-  }
+  if (typeof payload._format !== 'number' || payload._format > BACKUP_FORMAT) {
+  alert('That backup is missing or has an unrecognised format version. Nothing was changed.');
+  return;
+}
 
   const keys = Object.keys(payload.data).filter(k => BACKUP_KEYS.includes(k));
   if (!keys.length) {
