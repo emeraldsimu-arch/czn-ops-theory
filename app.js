@@ -1,8 +1,18 @@
 
 // ═══════════════════════════════════════════════════════════
-// NEXUS v5.16 — APP.JS
+// NEXUS v5.17 — APP.JS
 // All application logic and state management. localStorage only.
 // GitHub: emeraldsimu-arch/czn-ops-theory
+// Changes from v5.16:
+//   - applyImport(): the format guard was `payload._format > BACKUP_FORMAT`,
+//     which evaluates `undefined > 1` as false — a backup file missing
+//     _format entirely passed validation and restored. Now requires a
+//     number. Found by round-trip testing the shipped functions, 2026-07-26.
+//   - exportBackup(): the filename stamp used toISOString(), i.e. UTC.
+//     The Operator is US Central, so any export after 19:00 local was
+//     stamped with the next day's date. Now stamps the LOCAL date, matching
+//     how dk()/wk() treat dates everywhere else. The _exported field stays
+//     UTC ISO — that one is correct as an absolute timestamp.
 // Changes from v5.15:
 //   - NEW: Local Archive Backup. exportBackup() serialises every
 //     nexus_v53* key to a timestamped JSON file; handleImportFile()
@@ -1411,10 +1421,12 @@ function exportBackup() {
       const v = localStorage.getItem(k);
       if (v !== null) payload.data[k] = v;
     });
-    
-const d = new Date();
-const stamp = new Date(d.getTime() - d.getTimezoneOffset() * 60000)
-  .toISOString().slice(0, 10);
+
+    // Local date, not UTC: toISOString() would stamp an evening export
+    // in a UTC-behind timezone with tomorrow's date. Matches dk()/wk().
+    const now   = new Date();
+    const stamp = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
+                    .toISOString().slice(0, 10);
     const blob  = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     const url   = URL.createObjectURL(blob);
     const a     = document.createElement('a');
@@ -1459,10 +1471,16 @@ function applyImport(payload) {
     alert('That does not look like a NEXUS backup file. Nothing was changed.');
     return;
   }
-  if (typeof payload._format !== 'number' || payload._format > BACKUP_FORMAT) {
-  alert('That backup is missing or has an unrecognised format version. Nothing was changed.');
-  return;
-}
+  // `undefined > 1` is false, so a missing _format used to pass this
+  // guard and restore anyway. Require a real number.
+  if (typeof payload._format !== 'number') {
+    alert('That backup file is missing its format version and may be corrupt. Nothing was changed.');
+    return;
+  }
+  if (payload._format > BACKUP_FORMAT) {
+    alert('That backup was made by a newer version of NEXUS than this one. Nothing was changed.');
+    return;
+  }
 
   const keys = Object.keys(payload.data).filter(k => BACKUP_KEYS.includes(k));
   if (!keys.length) {
