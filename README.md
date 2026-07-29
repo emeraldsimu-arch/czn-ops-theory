@@ -3,7 +3,7 @@
 A personal operations dashboard and mission tracker for four priority gacha games. Built as a vanilla-JS Progressive Web App — no frameworks, no build step, no bundler. Install to your home screen for a full-screen native app experience.
 
 **Live:** `https://emeraldsimu-arch.github.io/czn-ops-theory/`
-**Version:** v5.17
+**Version:** v5.18
 **Last updated:** July 2026
 
 Single user ("the Operator"), single deployment. Not accepting contributions.

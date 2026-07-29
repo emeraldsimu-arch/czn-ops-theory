@@ -1,8 +1,45 @@
 
 // ═══════════════════════════════════════════════════════════
-// NEXUS v5.17 — APP.JS
+// NEXUS v5.18 — APP.JS
 // All application logic and state management. localStorage only.
 // GitHub: emeraldsimu-arch/czn-ops-theory
+// Changes from v5.17:
+//   - getv() WEEKLY READS WERE BROKEN FOR CZN. setv() resolves the storage
+//     key per game (wk(gid)/dk(gid)), but getv()'s weekly branch read out
+//     of the caller's `s` — which is always the generic wsFull() bag. CZN's
+//     week is Sunday-18:00-anchored, so its weeklies live under 'WCZN…' and
+//     were never in that bag: every CZN weekly read returned false. getv()
+//     is now the exact inverse of setv() and resolves the key itself.
+//     Introduced when the CZN Sunday anchor was added (commit 9909c70);
+//     getv() predates it and was never updated. Observed effects, all now
+//     fixed: CZN weekly checkboxes rendered unticked after any reload while
+//     storage still held them; the CZN card's own % disagreed with
+//     gamePct(); CZN weeklies could not be UN-ticked (togT read cur=false
+//     every time and so always wrote true); the d_tower dispatch could
+//     never fire; and CZN Guild Office (200 Crystals) never counted toward
+//     weekly earned currency.
+//     getv() also takes an optional pre-parsed store so buildCard() does
+//     not JSON.parse the whole state once per task row.
+//   - DISPATCH LATCH NEVER RESET. unlockedDispatches was a flat map in
+//     lifetime state that nothing ever cleared, but DISPATCHES are weekly
+//     commendations. Each one could therefore be earned exactly once EVER:
+//     totalDispatchesEarned capped at DISPATCHES.length permanently and the
+//     toasts went silent after the first few weeks. Now scoped to a week
+//     key and reset on rollover. The old flat shape is discarded on first
+//     run; the accumulated total is kept as the opening balance.
+//   - checkWeekRollover() completion % rewritten. It read weeklies from
+//     a[prev] (the GENERIC key, so CZN's 10 weekly tasks — half the total —
+//     sat in the denominator and could never be found) and scanned EVERY
+//     'D' key ever stored rather than the 7 belonging to the week that
+//     ended. The two errors pull opposite ways, so the same quality of week
+//     reported a different number purely as a function of how long the app
+//     had been installed: a perfect week scored 93% at week 1, an entirely
+//     empty week scored 98% at week 52. totalPerfectWeeks under-fired early
+//     and then falsely over-fired. New prevWeekKeys() helper resolves the
+//     correct per-game week bucket and exactly 7 daily keys; the
+//     denominator is now fixed at 139 regardless of history depth.
+//     prevDisp now reads the (week-scoped) dispatch latch instead of
+//     recomputing day-scoped predicates against today's state.
 // Changes from v5.16:
 //   - applyImport(): the format guard was `payload._format > BACKUP_FORMAT`,
 //     which evaluates `undefined > 1` as false — a backup file missing
@@ -13,26 +50,6 @@
 //     stamped with the next day's date. Now stamps the LOCAL date, matching
 //     how dk()/wk() treat dates everywhere else. The _exported field stays
 //     UTC ISO — that one is correct as an absolute timestamp.
-// Changes from v5.15:
-//   - NEW: Local Archive Backup. exportBackup() serialises every
-//     nexus_v53* key to a timestamped JSON file; handleImportFile()
-//     + applyImport() restore it. Import REPLACES all tracked keys
-//     (double-confirmed, with a summary of the backup's contents).
-//     The PIN (nexus_pin) is deliberately EXCLUDED so the backup file
-//     carries no credential. renderBackupAge() shows a "backed up Nd
-//     ago" label that turns amber at 14 days.
-//   - NEW storage key BAKK ('nexus_v53_bak') — last backup timestamp.
-//   - totalTasksCompleted: Math.max → true delta accumulator. The old
-//     form froze at the best single week (it compared a lifetime field
-//     against a weekly count). Now tracks _ltSeenWeek/_ltSeenCount and
-//     adds only the positive difference. Existing stored value is kept
-//     as the opening balance — history before v5.16 is not recovered,
-//     by design.
-//   - NEW recordCycleClear(): single owner for totalCycleClears and
-//     *LifetimeCycleClears. togCy() and sessionToggleCycle() both
-//     incremented these directly, which violated the one-writer rule in
-//     HANDOFF §8. Behaviour unchanged; the write now lives in one place.
-//   - renderAchievements() calls renderBackupAge().
 // ═══════════════════════════════════════════════════════════
 
 // ── STORAGE KEYS ──
@@ -131,13 +148,22 @@ function setv(gid, type, idx, val) {
   sv(a);
 }
 
-function getv(s, gid, type, idx) {
-  if (type === 'daily') {
-    const a = ld();
-    const key = dk(gid);
-    return !!(a[key]?.[gid]?.['daily']?.[idx]);
-  }
-  return !!(s[gid]?.[type]?.[idx]);
+// getv() is the exact INVERSE of setv(): it must resolve the storage key
+// the same way, per game. Weekly state is keyed PER GAME because CZN's week
+// is Sunday-18:00-anchored while every other game is Monday-anchored — CZN
+// weeklies live under wk('czn') ('WCZN…') and are NOT in the generic
+// wsFull() bag. This function used to read weekly state out of the caller's
+// `s`, which for CZN was always the wrong bucket: every CZN weekly read
+// returned false. See v5.18 notes in the header.
+//
+// `s` is retained for call-site compatibility but is no longer consulted.
+// Correctness must not depend on which week bag a caller happens to pass.
+// `all` is an optional pre-parsed store for hot loops (buildCard) so a full
+// render doesn't JSON.parse the whole store once per task.
+function getv(s, gid, type, idx, all) {
+  const a   = all || ld();
+  const key = type === 'daily' ? dk(gid) : wk(gid);
+  return !!(a[key]?.[gid]?.[type]?.[idx]);
 }
 
 function setCy(k, val) {
@@ -608,8 +634,8 @@ function buildCard(g, s) {
   const hasColPref = all[w]?._col?.[g.id] !== undefined;
   const collapsed  = hasColPref ? !!all[w]._col[g.id] : g.priority !== 1;
   let dd = 0, wd = 0;
-  g.daily.forEach((_,i)  => { if (getv(s,g.id,'daily',i))  dd++; });
-  g.weekly.forEach((_,i) => { if (getv(s,g.id,'weekly',i)) wd++; });
+  g.daily.forEach((_,i)  => { if (getv(s,g.id,'daily',i,all))  dd++; });
+  g.weekly.forEach((_,i) => { if (getv(s,g.id,'weekly',i,all)) wd++; });
   const total = g.daily.length + g.weekly.length;
   const done  = dd + wd;
   const pct   = Math.round(done / total * 100);
@@ -625,7 +651,7 @@ function buildCard(g, s) {
     : `<div class="card-fresh-warn"></div>`;
 
   const dailyHTML = g.daily.map((t, i) => {
-    const ok = getv(s, g.id, 'daily', i);
+    const ok = getv(s, g.id, 'daily', i, all);
     return `<div class="trow${ok?' done':''}" onclick="togT('${g.id}','daily',${i},this,event)">
       <div class="tcheck"></div><span class="ttext">${t.t}</span>
       ${t.deadline ? `<span class="tdl">↯ ${t.deadline}</span>` : ''}
@@ -633,7 +659,7 @@ function buildCard(g, s) {
   }).join('');
 
   const weeklyHTML = g.weekly.map((t, i) => {
-    const ok = getv(s, g.id, 'weekly', i);
+    const ok = getv(s, g.id, 'weekly', i, all);
     const isLocked = t.unlocks && new Date() < new Date(t.unlocks);
     return `<div class="trow${ok?' done':''}${isLocked?' locked':''}" onclick="${isLocked?'':` togT('${g.id}','weekly',${i},this,event)`}">
       <div class="tcheck"></div><span class="ttext">${t.t}</span>
@@ -1559,10 +1585,32 @@ function checkAllAchievements() {
         } catch {}
       }
     });
-    if (!lt2.unlockedDispatches) lt2.unlockedDispatches = {};
+    // DISPATCHES are WEEKLY commendations and must reset each Monday.
+    // Before v5.18 this latch was a flat map in lifetime state that nothing
+    // ever cleared, so each dispatch could be earned exactly once EVER:
+    // totalDispatchesEarned capped at DISPATCHES.length permanently and the
+    // toasts went silent after the first few weeks. It is now scoped to a
+    // week key and reset on rollover.
+    const curWeek = wk();
+    let ud = lt2.unlockedDispatches;
+    if (!ud || typeof ud.week !== 'string' || !ud.ids) {
+      // Migrate the pre-v5.18 flat map by CARRYING its ids into the current
+      // week rather than discarding them. Discarding would re-fire a toast
+      // for every already-earned dispatch on the first tap after upgrading
+      // — up to DISPATCHES.length of them at once, which overflows the
+      // toast stack on a phone — and would double-count them into
+      // totalDispatchesEarned. Proper weekly resets begin at the next
+      // rollover.
+      const legacy = (ud && typeof ud === 'object') ? ud : {};
+      const ids = {};
+      Object.keys(legacy).forEach(k => { if (legacy[k] === true) ids[k] = true; });
+      ud = { week: curWeek, ids };
+    }
+    if (ud.week !== curWeek) ud = { week: curWeek, ids: {} };
+    lt2.unlockedDispatches = ud;
     DISPATCHES.forEach(d => {
-      if (!lt2.unlockedDispatches[d.id] && checkDispatch(d, s2, lt2)) {
-        lt2.unlockedDispatches[d.id] = true; changed = true;
+      if (!ud.ids[d.id] && checkDispatch(d, s2, lt2)) {
+        ud.ids[d.id] = true; changed = true;
         showDispatchToast(d);
         lt2.totalDispatchesEarned = (lt2.totalDispatchesEarned||0) + 1;
       }
@@ -1608,32 +1656,60 @@ function triggerPhantomFlash() {
 }
 
 // ── END OF WEEK MODAL ──
+// Returns the storage keys belonging to the week that just ended, for one
+// game. `prevAnchorISO` is the YYYY-MM-DD Monday anchor taken from the
+// generic previous week key. CZN's week starts the PRECEDING Sunday at
+// 18:00 UTC, so its anchor is one day earlier; every other game is
+// Monday-anchored. Daily keys are the 7 consecutive dates from that anchor
+// — dk() has already done the reset-hour shifting at write time, so the
+// dates are directly comparable.
+function prevWeekKeys(gid, prevAnchorISO) {
+  const anchor = new Date(prevAnchorISO + 'T00:00:00Z');
+  if (gid === 'czn') anchor.setUTCDate(anchor.getUTCDate() - 1);
+  const iso = d => d.toISOString().slice(0, 10);
+  const weekKey   = (gid === 'czn' ? 'WCZN' : 'W') + iso(anchor);
+  const dailyKeys = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(anchor); d.setUTCDate(d.getUTCDate() + i);
+    dailyKeys.push('D' + iso(d) + '-' + gid);
+  }
+  return { weekKey, dailyKeys };
+}
+
 function checkWeekRollover() {
   const prev    = localStorage.getItem(PREVWK);
   const current = wk();
   if (prev && prev !== current) {
-    const a = ld(); const pd = a[prev] || {};
+    const a = ld();
+    const prevAnchor = prev.slice(1);   // strip the leading 'W'
     let t = 0, d = 0;
     GAMES.forEach(g => {
-      g.weekly.forEach((_,i) => {
-        t++;
-        if (pd[g.id]?.['weekly']?.[i]) d++;
-      });
-      const dailyKeyPrefix = 'D';
-      const gameId = g.id;
-      Object.keys(a).forEach(key => {
-        if (!key.startsWith(dailyKeyPrefix)) return;
-        if (!key.endsWith('-' + gameId)) return;
-        g.daily.forEach((_,i) => {
-          t++;
-          if (a[key]?.[gameId]?.['daily']?.[i]) d++;
-        });
+      // v5.18: was reading weeklies from a[prev] (the GENERIC key), which
+      // meant CZN's 10 weekly tasks — half the total — were counted in the
+      // denominator but could never be found. And the daily loop scanned
+      // EVERY 'D' key ever stored rather than the 7 from the week that
+      // ended, so the denominator grew without bound. Together those made
+      // the same quality of week report a different number depending only
+      // on how long the app had been installed, and totalPerfectWeeks
+      // under-fired early then falsely over-fired later.
+      const { weekKey, dailyKeys } = prevWeekKeys(g.id, prevAnchor);
+      g.weekly.forEach((_,i) => { t++; if (a[weekKey]?.[g.id]?.weekly?.[i]) d++; });
+      dailyKeys.forEach(dKey => {
+        g.daily.forEach((_,i) => { t++; if (a[dKey]?.[g.id]?.daily?.[i]) d++; });
       });
     });
     const prevPct  = t > 0 ? Math.round(d/t*100) : 0;
     const prevCyc  = cyclesDone();
     const lt = getLT();
-    const prevDisp = DISPATCHES.filter(ds => checkDispatch(ds, pd, lt)).length;
+
+    // Dispatches earned during the week that ended are read from the latch,
+    // which is week-scoped and has NOT yet been rolled: this function runs
+    // at init, before any checkAllAchievements(). Recomputing them here
+    // would be wrong — the dispatch predicates are day-scoped and would
+    // evaluate against today. If the latch belongs to some older week (the
+    // app wasn't opened for a while) we report 0 rather than a wrong number.
+    const ud = lt.unlockedDispatches;
+    const prevDisp = (ud && ud.week === prev && ud.ids) ? Object.keys(ud.ids).length : 0;
 
     if (prevPct >= 100) {
       lt.totalPerfectWeeks = (lt.totalPerfectWeeks || 0) + 1;

@@ -1,13 +1,15 @@
 // ═══════════════════════════════════════════════════════════
-// NEXUS v5.17 — CONFIG
+// NEXUS v5.18 — CONFIG
 // ── THIS IS THE ONLY FILE THAT NEEDS UPDATING ON PATCH DAY ──
 // Last verified: 2026-07-29
 // Next review: 2026-07-31 (ZZZ Deadly Assault rolls to the Jul 31–Aug 14
 //   window). After that, next natural checkpoint is ~2026-08-03/17/19
 //   (HSR PF, WW ToA/WhiWa, CZN FSO / WW patch end cluster).
 //
-// Changes from 2026-07-20 verify (this is a DATA-ONLY patch pass — no
-// version bump, no CACHE_NAME bump, per the release checklist):
+// Changes from 2026-07-20 verify (the game-data edits below are a pure
+// patch pass and would not by themselves move the version; they ship in
+// the same commit as the v5.18 app.js fixes, so CONFIG.version and the
+// SW CACHE_NAME move with that code change, not with this data):
 //   - czn patch: interim 'Pre-S4' row → Season 4 "Shattered Light and
 //     Claw" is LIVE. Official press (Smilegate/Super Creative) says
 //     Jul 28; Game8's server-status page shows the maintenance window
@@ -50,7 +52,7 @@
 // ═══════════════════════════════════════════════════════════
 
 const CONFIG = {
-  version: '5.17',
+  version: '5.18',
   lastVerified: '2026-07-29',
 
   resetTimes: {

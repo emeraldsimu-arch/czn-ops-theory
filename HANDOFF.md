@@ -181,7 +181,21 @@ Achievement `check()` calls run inside a `try {} catch {}` that swallows errors 
 | `totalTasksCompleted` | `updateLT()` ONLY | Any task tap (delta accumulator) |
 | `dailyCompletions` | `updateLT()` ONLY | Any task tap |
 | `unlockedAch` | `checkAllAchievements()` | Debounced tap |
+| `unlockedDispatches` | `checkAllAchievements()` ONLY | Debounced tap — **week-scoped**, see below |
+| `totalDispatchesEarned` | `checkAllAchievements()` ONLY | Debounced tap |
 | `_ltSeenWeek` / `_ltSeenCount` | `updateLT()` ONLY | Internal delta bookkeeping |
+
+**v5.18 change:** `unlockedDispatches` changed shape from a flat `{ id: true }`
+map to `{ week: '<wk() key>', ids: { id: true } }`. DISPATCHES are weekly
+commendations, but nothing ever cleared the flat map, so every dispatch could
+be earned exactly once ever — `totalDispatchesEarned` capped at
+`DISPATCHES.length` permanently and the toasts went silent after the first few
+weeks. The latch now resets whenever `ud.week !== wk()`. The legacy flat map is
+migrated by carrying its ids into the current week (not discarding them), so
+upgrading does not replay a screenful of toasts or double-count the total.
+`checkWeekRollover()` READS this latch to report the ended week's dispatch
+count — it must keep running before any `checkAllAchievements()` at init, or
+the latch will already have rolled. Do not reorder init.
 
 **v5.16 change:** `recordCycleClear()` was extracted because `togCy()` and `sessionToggleCycle()` each incremented the cycle-clear fields directly — two writers on single-owner fields. Session Mode was added after the original table was written and nobody updated it. Behaviour was correct in practice (the two paths can't both fire for one clear), but it was exactly the shape of the v5.5 double-count bug. If you add a third entry point for clearing a cycle, call `recordCycleClear()` — do not write the fields inline.
 
