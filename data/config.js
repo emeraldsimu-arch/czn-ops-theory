@@ -1,80 +1,57 @@
 // ═══════════════════════════════════════════════════════════
 // NEXUS v5.17 — CONFIG
 // ── THIS IS THE ONLY FILE THAT NEEDS UPDATING ON PATCH DAY ──
-// Last verified: 2026-07-20
-// Next review: 2026-07-24 (ZZZ Shiyu rolls to Aug 7 window — small edit)
-//   ── then a BIG review 2026-07-28/29: CZN Season 4 launches Jul 28,
-//      ZZZ 3.1 launches Jul 29, ZZZ Deadly Assault rolls ~Jul 31.
-//      Combine into one Jul 28 pass if a 4-day-stale Shiyu row is acceptable.
-//      DECIDED 2026-07-25: combining. The Jul 24 Shiyu row is deliberately
-//      left stale until Jul 28 — the ⚠ banner correctly reports this.
+// Last verified: 2026-07-29
+// Next review: 2026-07-31 (ZZZ Deadly Assault rolls to the Jul 31–Aug 14
+//   window). After that, next natural checkpoint is ~2026-08-03/17/19
+//   (HSR PF, WW ToA/WhiWa, CZN FSO / WW patch end cluster).
 //
-// ── OUT-OF-BAND EDIT 2026-07-25 (version metadata only, NO date changes) ──
-//   The v5.16 code (Local Archive Backup, recordCycleClear, totalTasks-
-//   Completed delta accumulator) shipped Jul 22-23 but CONFIG.version was
-//   never bumped, so the logo rendered "v5.15" on a v5.16 build. Corrected:
-//     - version: '5.15' → '5.16'
-//     - header title: v5.15 → v5.16
-//   lastVerified, patches, cycles, events, pulls, weeklyYields and
-//   resetTimes are ALL UNCHANGED. This was not a patch pass.
+// Changes from 2026-07-20 verify (this is a DATA-ONLY patch pass — no
+// version bump, no CACHE_NAME bump, per the release checklist):
+//   - czn patch: interim 'Pre-S4' row → Season 4 "Shattered Light and
+//     Claw" is LIVE. Official press (Smilegate/Super Creative) says
+//     Jul 28; Game8's server-status page shows the maintenance window
+//     as Jul 29 00:00–05:00 UTC — same KST/UTC framing gap noted last
+//     pass. Treating Jul 28 as the effective start, consistent with
+//     the prior pass's call. New combatants Hilde/Arabella/Olga —
+//     recruitment banner order not yet announced.
+//   - czn patch end: 2026-07-28 → 2026-10-06 ESTIMATED. No official S4
+//     end date exists yet. Derived from Season 3's length (Apr 29 →
+//     Jul 8 = 70 days) applied to the Jul 28 S4 start. RE-VERIFY when
+//     S4 patch notes or an S5 tease land — do not treat as confirmed.
+//   - czn_boh: 2026-07-28 → 2026-10-06 (tracks the patch-end estimate
+//     above, type 'patch'). UNVERIFIED flag is now RESOLVED — S4 patch
+//     notes confirm a full revamp: 3-pick Support Effect System, mode
+//     cut from 10 floors to 8, harder/richer final floor.
+//   - zzz patch: 3.0 → 3.1 "The Long Goodbye" 2nd anniversary, live
+//     Jul 29 (today) per Sportskeeda/Game8/Fandom patch notes. Adds
+//     Adversity Mode to Deadly Assault (unlocks at 9 Trial Mode stars).
+//   - zzz patch end: 2026-07-28 → 2026-09-08 ESTIMATED. 3.2 has no
+//     official date; leaks (Claret/Roxy) plus the standard six-week
+//     cadence point to a ~Sep 9 launch. RE-VERIFY at the live-stream.
+//   - zzz_shiyu: 2026-07-24 → 2026-08-07 (rotation rolled forward one
+//     cycle; Aug 7 reset confirmed per Game8's Shiyu tracker)
+//   - zzz_deadly: unchanged at 2026-07-30 — current stage window
+//     (Jul 17–30) still valid; rolls at the Jul 31 review, not this one.
+//   - events: removed ev_zzz_30 (ZZZ v3.0 ended with the patch).
+//     ev_zzz_31anniv label trimmed — anniversary is live now, not
+//     upcoming; dates/rewards unchanged and confirmed accurate
+//     (Remielle full-patch, Sigrid from Aug 19, both to Sep 8).
+//     ev_hsr_fate2 and ev_ww_35 confirmed unchanged, no edits.
+//   - ww / hsr: no changes — all cycle end dates (Aug 3/17/19/25/31)
+//     are still in the future; nothing expired or rolling this pass.
+//   - pulls / weeklyYields / resetTimes: unchanged.
+// Sources: official press (Smilegate/Super Creative, HoYoverse), Game8,
+//   Icy Veins, Sportskeeda, Fandom wikis — cross-checked 2026-07-29.
 //
-// ── VERSION BUMP 2026-07-26: '5.16' → '5.17' for the app.js backup fixes
-//   (import format guard, local-date export filename). Again NO date or
-//   game-data changes. The Jul 28 patch pass is still outstanding.
-//
-// Changes from 2026-06-29 verify:
-//   - version: 5.14 → 5.15 (assumes full v5.15 release ships as one commit
-//     set; revert to '5.14' if pushing config ahead of the rest)
-//   - czn patch: Season 3 (ended Jul 8) → interim row counting down to
-//     Season 4 "Shattered Light and Claw", launches 2026-07-28 (official
-//     press release; one outlet said Jul 29 — KST discrepancy, Jul 28 stands)
-//   - ww patch: 3.4 → 3.5 (live Jul 10, ends Aug 19 per Game8)
-//   - hsr patch: 4.3 → 4.4 (NA flip Jul 14 20:00 PST, ends Aug 25 NA-side /
-//     Aug 26 global — six-week cycle restored after 4.3's odd schedule)
-//   - zzz patch: 3.0 ends 2026-07-28 — CONFIRMED UNCHANGED (3.1 Jul 29,
-//     "The Long Goodbye" 2nd anniversary, per official announcement)
-//   - hsr_moc: 2026-07-06 → 2026-08-17 (cycle Jul 6–Aug 17 per Sportskeeda 4.4)
-//   - hsr_pf: 2026-08-03 — CONFIRMED UNCHANGED (cycle Jun 22–Aug 3)
-//   - hsr_as: 2026-07-20 → 2026-08-31 EST (new cycle started today Jul 20;
-//     next reset derived from 6-week cadence, not yet officially published)
-//   - hsr_aa: 2026-07-13 → 2026-08-25 (AA refreshed WITH v4.4 on Jul 15 per
-//     Sportskeeda — not Jul 13 as previously tracked; runs to next version)
-//   - ww_toa: 2026-07-20 → 2026-08-17 (new cycle started today Jul 20;
-//     28-day Monday cadence May 25 → Jun 22 → Jul 20 → Aug 17)
-//   - ww_ww: 2026-07-06 → 2026-08-03 (reset Aug 3 per Game8 3.5 WhiWa guide)
-//   - ww_em: 2026-07-09 → 2026-08-19 (patch-tied; follows 3.5 window —
-//     ASSUMED from type, not independently verified this pass)
-//   - czn_boh: 2026-07-08 → 2026-07-28 UNVERIFIED — interim status of Basin
-//     of Hyperspace not covered by sources; confirm in-game, likely
-//     refreshes with Season 4
-//   - czn_fso: type patch → date. Full-Scale Offensive now has explicit
-//     dates: Jul 8 – Aug 19 (bosses Judas, Colossus, Beginning of Desire,
-//     per Game8 Jul 8 patch notes)
-//   - zzz_shiyu: 2026-07-10 → 2026-07-24 (biweekly Friday; current rotation
-//     Jul 10–24, next Jul 24–Aug 7 per nanoka.cc rotation data)
-//   - zzz_deadly: 2026-07-02 → 2026-07-30 (current stages Jul 17–30 per
-//     Icy Veins; reset Friday Jul 31)
-//   - events: removed ev_ww_cyber (ended Jul 9) and ev_czn_s3 (ended Jul 8).
-//     ev_hsr_fate2 rewritten — collab banners + free Archer/Gilgamesh claim
-//     open Jul 24, claim window runs to END OF v4.6; ends date 2026-11-17 is
-//     an ESTIMATE (4.6 end not announced) — re-verify at 4.5 launch.
-//     ev_zzz_30 confirmed unchanged (ends Jul 28). Added ev_zzz_31anniv
-//     (free limited S-Rank + W-Engine — critical) and ev_ww_35 (Virtual
-//     Crisis / Tacet Crisis, dates tied to patch end, not independently
-//     verified). CZN Season 4 launch countdown is carried by the patches
-//     row, not duplicated as an event; add S4 seasonal event entries at the
-//     Jul 28 review once dates are known.
-//   - notion block REMOVED — Notion sync deprecated and stripped from
-//     app.js in the same v5.15 release; nothing references these IDs.
-//     (Values preserved in git history if ever needed.)
-//   - pulls / weeklyYields / resetTimes: unchanged
-// Sources: official press releases (Smilegate, HoYoverse), Game8, Icy Veins,
-//   Sportskeeda, nanoka.cc, u7buy banner schedules — cross-checked Jul 20.
+// Header trimmed to current pass only (prior verbose history dropped —
+// full record lives in git and HANDOFF.md §21), per the header-bloat
+// convention agreed 2026-07-29 but not yet fully enforced project-wide.
 // ═══════════════════════════════════════════════════════════
 
 const CONFIG = {
   version: '5.17',
-  lastVerified: '2026-07-20',
+  lastVerified: '2026-07-29',
 
   resetTimes: {
     hsr: { dailyUTC: 10, weeklyDay: 1, weeklyUTC: 10 },
@@ -84,16 +61,17 @@ const CONFIG = {
   },
 
  patches: [
-    // CZN: Season 3 ended at Jul 8 maintenance; Season 4 "Shattered Light
-    // and Claw" (Galactic Disaster arc — Hilde, Arabella, Olga) lands Jul 28.
-    // This row counts down the interim to S4 launch.
-    { game: 'czn', version: 'Pre-S4', label: 'SEASON 4 INCOMING — SHATTERED LIGHT AND CLAW', ends: '2026-07-28', resetDay: 0 },
+    // CZN: Season 4 "Shattered Light and Claw" (Galactic Disaster arc —
+    // Hilde, Arabella, Olga) is LIVE as of Jul 28. End date is an
+    // ESTIMATE (no official end announced) — see header.
+    { game: 'czn', version: 'S4', label: 'SEASON 4 — SHATTERED LIGHT AND CLAW', ends: '2026-10-06', resetDay: 0 },
     // WW 3.5 "Blade of Past Resounds, Lingering Dream Hymns" — Jul 10–Aug 19.
     { game: 'ww',  version: '3.5', label: 'VER 3.5 — BLADE OF PAST RESOUNDS', ends: '2026-08-19', resetDay: 1 },
     // HSR 4.4 "In Ravages Does the Whistle Sound" — NA Jul 14 → Aug 25.
     { game: 'hsr', version: '4.4', label: 'VER 4.4 — IN RAVAGES DOES THE WHISTLE SOUND', ends: '2026-08-25', resetDay: 1 },
-    // ZZZ 3.0 "A Sleepwalker's Confession" — Jun 17 → Jul 28.
-    { game: 'zzz', version: '3.0', label: "VER 3.0 — A SLEEPWALKER'S CONFESSION", ends: '2026-07-28', resetDay: 1 },
+    // ZZZ 3.1 "The Long Goodbye" (2nd anniversary) — live Jul 29. End
+    // date is an ESTIMATE (six-week cadence + 3.2 leaks) — see header.
+    { game: 'zzz', version: '3.1', label: 'VER 3.1 — THE LONG GOODBYE', ends: '2026-09-08', resetDay: 1 },
   ],
   
   cycles: {
@@ -119,21 +97,23 @@ const CONFIG = {
     ww_em:      { ends: '2026-08-19', type: 'patch',  label: 'Endstate Matrix (v3.5 phase)' },
     ww_tg:      { ends: 'weekly',     type: 'weekly', label: 'Fantasies of Thousand Gateways' },
 
-    // CZN — interim window (S3 ended Jul 8, S4 lands Jul 28)
-    // BoH: interim status UNVERIFIED — confirm in-game; tied to S4 boundary.
+    // CZN — Season 4 live as of Jul 28.
+    // BoH: revamped with S4 (3-pick Support Effect System, 8 floors not
+    //   10). Tracks the patch-end estimate — see header for caveats.
     // FSO: explicit dates Jul 8 – Aug 19 (Judas / Colossus / Beginning of
-    //   Desire) per Game8 Jul 8 patch notes — now type 'date'.
-    czn_boh:    { ends: '2026-07-28', type: 'patch',  label: 'Basin of Hyperspace' },
+    //   Desire) per Game8 Jul 8 patch notes — type 'date'.
+    czn_boh:    { ends: '2026-10-06', type: 'patch',  label: 'Basin of Hyperspace' },
     czn_fso:    { ends: '2026-08-19', type: 'date',   label: 'Full-Scale Offensive' },
     czn_sortie: { ends: 'weekly',     type: 'weekly', label: 'Sortie Mode run' },
 
-    // ZZZ v3.0 (Jun 17 – Jul 28), v3.1 launches Jul 29
-    // Shiyu Critical: rotation Jul 10–24, next Jul 24–Aug 7 (tracks NEXT
-    //   RESET date per this key's convention).
+    // ZZZ v3.1 "The Long Goodbye" live Jul 29 (2nd anniversary).
+    // Shiyu Critical: rotation Jul 24–Aug 7, tracks NEXT RESET date per
+    //   this key's convention — confirmed via Game8's Shiyu tracker.
     // Deadly Assault: stages Jul 17–30, reset Fri Jul 31 (tracks LAST DAY
-    //   per this key's convention). 3.1 adds Adversity Mode to DA — watch
-    //   for schedule changes at the Jul 28 review.
-    zzz_shiyu:  { ends: '2026-07-24', type: 'date',   label: 'Shiyu Defense / Critical Node' },
+    //   per this key's convention). 3.1 adds Adversity Mode to DA
+    //   (unlocks at 9 Trial Mode stars) — no schedule change to the
+    //   existing rotation.
+    zzz_shiyu:  { ends: '2026-08-07', type: 'date',   label: 'Shiyu Defense / Critical Node' },
     zzz_deadly: { ends: '2026-07-30', type: 'date',   label: 'Deadly Assault' },
     zzz_hollow: { ends: 'weekly',     type: 'weekly', label: 'Hollow Zero / Operation Matrix' },
   },
@@ -145,13 +125,11 @@ const CONFIG = {
     // Lv60, open Jul 24 → END OF v4.6. Ends date below is an ESTIMATE
     // (v4.6 end unannounced, ~mid-Nov by 6-week cadence) — RE-VERIFY at 4.5.
     { id: 'ev_hsr_fate2', game: 'hsr', tier: 'critical', name: 'Fate/stay night Pt 2 — Rin & Gilgamesh (opens Jul 24)', ends: '2026-11-17', desc: 'Banners open Jul 24, shared collab pity. Free Archer OR Gilgamesh claim until end of v4.6 (ends date estimated — verify at 4.5)', currency: { type: 'jade', amount: 0, note: 'Free Archer/Gilgamesh choice + Lv60 mats; Rin & Gilgamesh limited gacha, separate pity pool' } },
-    // ZZZ 3.0 — ends with patch Jul 28. Confirmed unchanged.
-    { id: 'ev_zzz_30',    game: 'zzz', tier: 'standard', name: 'v3.0 A Sleepwalker\'s Confession',    ends: '2026-07-28', desc: 'Season 3 launch events — Roscaelifer area, free Pyrois story unlock', currency: { type: 'polychrome', amount: 0, note: 'Event Polychrome + free Pyrois (story character)' } },
-    // ZZZ 3.1 — 2nd anniversary, launches Jul 29. Free CHOICE of a limited
+    // ZZZ 3.1 — 2nd anniversary, live now. Free CHOICE of a limited
     // S-Rank Agent + matching W-Engine, 1,600 Polychromes + 20 Signal
     // Searches via login. Remielle (first Lumiflux) full-version banner
     // Jul 29–Sep 8; Sigrid Aug 19–Sep 8 with Exclusive Rescreening rerun.
-    { id: 'ev_zzz_31anniv', game: 'zzz', tier: 'critical', name: 'v3.1 2nd Anniversary (launches Jul 29)', ends: '2026-09-08', desc: 'Free limited S-Rank Agent of choice + exclusive W-Engine, 1,600 Polychrome + 20 pulls. Remielle full-version; Sigrid from Aug 19', currency: { type: 'polychrome', amount: 1600, note: 'Login rewards; free limited S-Rank + W-Engine choice — do not miss' } },
+    { id: 'ev_zzz_31anniv', game: 'zzz', tier: 'critical', name: 'v3.1 2nd Anniversary', ends: '2026-09-08', desc: 'Free limited S-Rank Agent of choice + exclusive W-Engine, 1,600 Polychrome + 20 pulls. Remielle full-version; Sigrid from Aug 19', currency: { type: 'polychrome', amount: 1600, note: 'Login rewards; free limited S-Rank + W-Engine choice — do not miss' } },
     // WW 3.5 — headline events Virtual Crisis / Tacet Crisis. Individual
     // event windows not independently verified; tied to patch end.
     { id: 'ev_ww_35',     game: 'ww',  tier: 'standard', name: 'v3.5 Events — Virtual Crisis / Tacet Crisis', ends: '2026-08-19', desc: 'Headline 3.5 events (windows assumed patch-length — verify in-game). Electro Rover unlock via main quest', currency: { type: 'astrite', amount: 0, note: 'Event Astrite; Reverb Convene rerun banner has free pulls + rebate' } },
