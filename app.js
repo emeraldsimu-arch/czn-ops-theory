@@ -1,8 +1,19 @@
-
 // ═══════════════════════════════════════════════════════════
-// NEXUS v5.18 — APP.JS
+// NEXUS v5.19 — APP.JS
 // All application logic and state management. localStorage only.
 // GitHub: emeraldsimu-arch/czn-ops-theory
+// Changes from v5.18:
+//   - FRESHNESS BANNER UNDER-REPORTED EXPIRED CYCLES. checkFreshness()
+//     built the stale message from cf.warnings.find(...), i.e. the FIRST
+//     expired cycle only, and the "(+N more)" suffix was gated on !stale so
+//     it appeared exclusively in the WARN state. In the STALE state — the
+//     one that actually requires action — every expired row after the first
+//     was silently dropped. On 2026-08-04 the banner read "HSR Pure Fiction
+//     date expired" while WW Whimpering Wastes and ZZZ Deadly Assault were
+//     also expired; the Jul 31 Deadly Assault roll went unnoticed for 5 days
+//     as a direct result. The stale banner now names every expired cycle and
+//     leads with the count, so the number survives wrapping on a 380px
+//     viewport. Detection was always correct — only the reporting was lossy.
 // Changes from v5.17:
 //   - getv() WEEKLY READS WERE BROKEN FOR CZN. setv() resolves the storage
 //     key per game (wk(gid)/dk(gid)), but getv()'s weekly branch read out
@@ -408,9 +419,20 @@ function checkFreshness() {
   });
 
   const cf = checkCycleFreshness();
+  const expired = cf.warnings.filter(w => w.includes('expired'));
   if (!stale && cf.stale) {
     stale = true;
-    msg = cf.warnings.find(w => w.includes('expired')) || 'Cycle data may be outdated';
+    // v5.19: this used to be `expired[0]` — the FIRST expired row and
+    // nothing else. The `(+N more)` suffix below was gated on `!stale`, so
+    // it only ever appeared in the WARN state; in the STALE state, which is
+    // the one that actually needs action, every expired row after the first
+    // was silently dropped. On 2026-08-04 the banner read "HSR Pure Fiction
+    // date expired" while WW Whimpering Wastes and ZZZ Deadly Assault were
+    // also expired and unreported. Now names all of them.
+    msg = expired.length
+      ? (expired.length > 1 ? expired.length + ' cycles expired — ' : 'Cycle expired — ') +
+        expired.map(w => w.replace(' date expired — update config', '')).join(' · ')
+      : 'Cycle data may be outdated';
   }
 
   if (!stale && soonestPatch) { warn = true; msg = `${soonestPatch.game.toUpperCase()} patch ends in ${soonestDiff}d`; }
