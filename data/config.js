@@ -1,50 +1,43 @@
 // ═══════════════════════════════════════════════════════════
-// NEXUS v5.18 — CONFIG
+// NEXUS v5.19 — CONFIG
 // ── THIS IS THE ONLY FILE THAT NEEDS UPDATING ON PATCH DAY ──
-// Last verified: 2026-07-29
-// Next review: 2026-07-31 (ZZZ Deadly Assault rolls to the Jul 31–Aug 14
-//   window). After that, next natural checkpoint is ~2026-08-03/17/19
-//   (HSR PF, WW ToA/WhiWa, CZN FSO / WW patch end cluster).
+// Last verified: 2026-08-04
+// Next review: 2026-08-07 (ZZZ Shiyu Defense rolls to the Aug 7-21 window).
+//   Then 2026-08-12 (ZZZ Deadly Assault), 2026-08-17 (HSR MoC + WW ToA),
+//   2026-08-19 (WW 3.5 patch end cluster + CZN FSO).
 //
-// Changes from 2026-07-20 verify (the game-data edits below are a pure
-// patch pass and would not by themselves move the version; they ship in
-// the same commit as the v5.18 app.js fixes, so CONFIG.version and the
-// SW CACHE_NAME move with that code change, not with this data):
-//   - czn patch: interim 'Pre-S4' row → Season 4 "Shattered Light and
-//     Claw" is LIVE. Official press (Smilegate/Super Creative) says
-//     Jul 28; Game8's server-status page shows the maintenance window
-//     as Jul 29 00:00–05:00 UTC — same KST/UTC framing gap noted last
-//     pass. Treating Jul 28 as the effective start, consistent with
-//     the prior pass's call. New combatants Hilde/Arabella/Olga —
-//     recruitment banner order not yet announced.
-//   - czn patch end: 2026-07-28 → 2026-10-06 ESTIMATED. No official S4
-//     end date exists yet. Derived from Season 3's length (Apr 29 →
-//     Jul 8 = 70 days) applied to the Jul 28 S4 start. RE-VERIFY when
-//     S4 patch notes or an S5 tease land — do not treat as confirmed.
-//   - czn_boh: 2026-07-28 → 2026-10-06 (tracks the patch-end estimate
-//     above, type 'patch'). UNVERIFIED flag is now RESOLVED — S4 patch
-//     notes confirm a full revamp: 3-pick Support Effect System, mode
-//     cut from 10 floors to 8, harder/richer final floor.
-//   - zzz patch: 3.0 → 3.1 "The Long Goodbye" 2nd anniversary, live
-//     Jul 29 (today) per Sportskeeda/Game8/Fandom patch notes. Adds
-//     Adversity Mode to Deadly Assault (unlocks at 9 Trial Mode stars).
-//   - zzz patch end: 2026-07-28 → 2026-09-08 ESTIMATED. 3.2 has no
-//     official date; leaks (Claret/Roxy) plus the standard six-week
-//     cadence point to a ~Sep 9 launch. RE-VERIFY at the live-stream.
-//   - zzz_shiyu: 2026-07-24 → 2026-08-07 (rotation rolled forward one
-//     cycle; Aug 7 reset confirmed per Game8's Shiyu tracker)
-//   - zzz_deadly: unchanged at 2026-07-30 — current stage window
-//     (Jul 17–30) still valid; rolls at the Jul 31 review, not this one.
-//   - events: removed ev_zzz_30 (ZZZ v3.0 ended with the patch).
-//     ev_zzz_31anniv label trimmed — anniversary is live now, not
-//     upcoming; dates/rewards unchanged and confirmed accurate
-//     (Remielle full-patch, Sigrid from Aug 19, both to Sep 8).
-//     ev_hsr_fate2 and ev_ww_35 confirmed unchanged, no edits.
-//   - ww / hsr: no changes — all cycle end dates (Aug 3/17/19/25/31)
-//     are still in the future; nothing expired or rolling this pass.
-//   - pulls / weeklyYields / resetTimes: unchanged.
-// Sources: official press (Smilegate/Super Creative, HoYoverse), Game8,
-//   Icy Veins, Sportskeeda, Fandom wikis — cross-checked 2026-07-29.
+// Changes from 2026-07-29 verify (DATA-ONLY patch pass — the version bump
+// to 5.19 in this release comes from the app.js banner fix, not from these
+// date edits):
+//   THREE CYCLES HAD EXPIRED. The freshness banner detected all three but
+//   only ever displayed the first (see app.js v5.19 notes) — it read "HSR
+//   Pure Fiction date expired" while WW and ZZZ were also expired and
+//   unreported. The Jul 31 Deadly Assault roll flagged at the last pass was
+//   missed as a result and sat expired for 5 days.
+//   - hsr_pf: 2026-08-03 -> 2026-09-14. Phase 'Falsehood to Fact' ran
+//     Jun 22 - Aug 3; phases last six weeks and reset Monday 04:00 server
+//     time, so the new phase runs Aug 3 - Sep 14. CONFIRMED (Icy Veins +
+//     Sportskeeda 4.4 schedule + Game8).
+//   - ww_ww: 2026-08-03 -> 2026-08-31. The 3.5 Whimpering Wastes cycle runs
+//     Aug 3 - Aug 31 on the standard 28-day cadence. CONFIRMED (Game8
+//     states the Aug 31 reset explicitly; topuplive 3.5 guide agrees).
+//   - zzz_deadly: 2026-07-30 -> 2026-08-12. Resets every two weeks on a
+//     Friday; current stage window is Jul 29 - Aug 12. CONFIRMED (Icy
+//     Veins; ZZZ Fandom confirms the two-week alternation with Shiyu).
+//     NOTE the window opened Jul 29, not Jul 31 as estimated last pass —
+//     the prior row was derived, this one is sourced.
+//   - zzz_shiyu: unchanged at 2026-08-07 (rolls in 3 days, next review).
+//   - czn (S4 -> 2026-10-06) and zzz (3.1 -> 2026-09-08) patch end dates
+//     remain ESTIMATES; still no official announcement for either. The CZN
+//     figure is derived from Season 3's 70-day length, the ZZZ figure from
+//     the six-week cadence. RE-VERIFY when notes or a livestream land.
+//   - hsr_moc / hsr_as / hsr_aa / ww_toa / ww_em / czn_fso / czn_boh and
+//     all three events: confirmed unchanged, nothing expired or rolling.
+//   - pulls / weeklyYields / resetTimes: unchanged. NOTE weeklyYields for
+//     WW and ZZZ are still flagged as drifted in HANDOFF section 6 and feed
+//     calcProjection; that audit is outstanding and is not part of this pass.
+// Sources: Icy Veins, Game8, Sportskeeda, Fandom wikis, topuplive 3.5
+//   guide - cross-checked 2026-08-04.
 //
 // Header trimmed to current pass only (prior verbose history dropped —
 // full record lives in git and HANDOFF.md §21), per the header-bloat
@@ -52,8 +45,8 @@
 // ═══════════════════════════════════════════════════════════
 
 const CONFIG = {
-  version: '5.18',
-  lastVerified: '2026-07-29',
+  version: '5.19',
+  lastVerified: '2026-08-04',
 
   resetTimes: {
     hsr: { dailyUTC: 10, weeklyDay: 1, weeklyUTC: 10 },
@@ -85,7 +78,7 @@ const CONFIG = {
     // PF cycle Jun 22 → Aug 3 — confirmed unchanged.
     // MoC cycle Jul 6 → Aug 17 — confirmed.
     hsr_moc:    { ends: '2026-08-17', type: 'date',   label: 'Memory of Chaos' },
-    hsr_pf:     { ends: '2026-08-03', type: 'date',   label: 'Pure Fiction' },
+    hsr_pf:     { ends: '2026-09-14', type: 'date',   label: 'Pure Fiction' },
     hsr_as:     { ends: '2026-08-31', type: 'date',   label: 'Apocalyptic Shadow' },
     hsr_aa:     { ends: '2026-08-25', type: 'date',   label: 'Anomaly Arbitration' },
 
@@ -95,7 +88,7 @@ const CONFIG = {
     // WhiWa cycle Jul 6 → Aug 3 per Game8 3.5 guide.
     // Endstate Matrix assumed patch-tied (type carried over) → Aug 19.
     ww_toa:     { ends: '2026-08-17', type: 'date',   label: 'Tower of Adversity (all zones incl. Hazard Zone)' },
-    ww_ww:      { ends: '2026-08-03', type: 'date',   label: 'Whimpering Wastes' },
+    ww_ww:      { ends: '2026-08-31', type: 'date',   label: 'Whimpering Wastes' },
     ww_em:      { ends: '2026-08-19', type: 'patch',  label: 'Endstate Matrix (v3.5 phase)' },
     ww_tg:      { ends: 'weekly',     type: 'weekly', label: 'Fantasies of Thousand Gateways' },
 
@@ -116,7 +109,7 @@ const CONFIG = {
     //   (unlocks at 9 Trial Mode stars) — no schedule change to the
     //   existing rotation.
     zzz_shiyu:  { ends: '2026-08-07', type: 'date',   label: 'Shiyu Defense / Critical Node' },
-    zzz_deadly: { ends: '2026-07-30', type: 'date',   label: 'Deadly Assault' },
+    zzz_deadly: { ends: '2026-08-12', type: 'date',   label: 'Deadly Assault' },
     zzz_hollow: { ends: 'weekly',     type: 'weekly', label: 'Hollow Zero / Operation Matrix' },
   },
 

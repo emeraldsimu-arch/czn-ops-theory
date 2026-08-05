@@ -1,12 +1,12 @@
 // ═══════════════════════════════════════════════════════════
-// NEXUS v5.18 — SERVICE WORKER
+// NEXUS v5.19 — SERVICE WORKER
 // Stale-while-revalidate. Bump CACHE_NAME whenever any file
 // outside data/ changes.
+// Changes from v5.18:
+//   - CACHE_NAME: nexus-v518-static → nexus-v519-static (app.js changed)
+//   - No logic changes.
 // Changes from v5.17:
 //   - CACHE_NAME: nexus-v517-static → nexus-v518-static (app.js changed)
-//   - No logic changes.
-// Changes from v5.16:
-//   - CACHE_NAME: nexus-v516-static → nexus-v517-static (app.js changed)
 //   - No logic changes.
 // Changes from v5.11:
 //   - CACHE_NAME: nexus-v511-static → nexus-v515-static
@@ -20,7 +20,7 @@
 //   - fetch: opaque/error responses no longer poison the cache
 // ═══════════════════════════════════════════════════════════
 
-const CACHE_NAME = 'nexus-v518-static';
+const CACHE_NAME = 'nexus-v519-static';
 
 const ASSETS = [
   '/czn-ops-theory/',
