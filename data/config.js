@@ -1,97 +1,95 @@
 // NEXUS v5.19 — CONFIG
 // ── THIS IS THE ONLY FILE THAT NEEDS UPDATING ON PATCH DAY ──
-// Last verified: 2026-09-04
-// Next review: 2026-09-09 (BIG pass — ZZZ 3.2 launches, CZN Phase 3/Olga
-//   begins, Arabella + FSO + Primal Desire windows close). Then 2026-09-10
-//   (zzz_deadly), 2026-09-14 (ww_toa + hsr_pf), 2026-09-18 (zzz_shiyu),
-//   2026-09-27/28 (HSR 4.6 lands — roll hsr patch row + hsr_aa), 2026-09-29
-//   (WW 3.6 ends / ww_em), 2026-09-30 (CZN S4 finale + Beach Cafe Festival +
-//   czn_boh), ~2026-10-12 (hsr_as next cycle, ESTIMATE — re-verify).
+// Last verified: 2026-11-12
+// Next review: 2026-11-13 (zzz_shiyu resets). Then 2026-11-16 (hsr_as),
+//   2026-11-19 (zzz_deadly last day), 2026-11-23 (ww_ww), 2026-11-24
+//   (CZN Tiphera rerun ends), 2026-11-30 (hsr_pf + ZZZ Spooky Funhouse),
+//   2026-12-01 (ZZZ 3.3 ends), 2026-12-02 (BIG CZN pass — Phase 3/Dahlia,
+//   Rossweisse + Blazebell + Carnival close, FSO/BoH roll), 2026-12-07
+//   (ww_toa), 2026-12-14 (hsr_moc), ~2026-12-21/22 (WW 4.0 + HSR 4.8,
+//   both ESTIMATES — re-verify), ~2026-12-23 (CZN S5 end, DERIVED).
 //
-// Changes from 2026-08-20 verify — DATA-ONLY pass, no version bump.
-//   ** This pass was itself 10 days overdue: Next review had been
-//   2026-08-25 and four checkpoints (Aug 25/27/31, Sep 3) had already
-//   passed. Five cycle/event rows were showing expired on the live site
-//   before this pass. Anchor every future pass to the real current date
-//   the moment the session opens — this is the second time a pass has
-//   arrived stale; see HANDOFF for a standing fix. **
+// Changes from 2026-09-04 verify — DATA-ONLY pass, no version bump.
+//   ** This pass was ~2 MONTHS overdue: Next review had been 2026-09-09.
+//   Every patch, cycle and event row had expired on the live site. Each
+//   game moved 1-2 full versions: CZN S4 -> S5, WW 3.6 -> 3.8, HSR 4.5 ->
+//   4.7, ZZZ 3.1 -> 3.3. Everything below is re-derived from scratch
+//   against current sources, not rolled forward from old values. **
 //
-//   EXPIRED, now rolled:
-//   - hsr patch: 4.4 (ended 2026-08-25) -> 4.5 "To Roll the Stars in
-//     Astropolis", live NA 2026-08-25 / global Aug 26 (RPG Site, Game8,
-//     Notebookcheck). CONFIRMED a 5-week patch, not 6 (Game8) — combined
-//     with the now-confirmed HSR 4.6 date below, ends 2026-09-27 (NA).
-//   - hsr_aa: 2026-08-25 -> 2026-09-27. Anomaly Arbitration refreshed
-//     2026-08-26 alongside 4.5 (Sportskeeda) and runs to the next version
-//     boundary — now that boundary is dated (see hsr patch row).
-//   - hsr_as: 2026-08-31 -> ~2026-10-12 (ESTIMATE). Apocalyptic Shadow's
-//     "Vanguard Knight" phase ended and progression reset 2026-08-31
-//     (Sportskeeda, Icy Veins); the mode refreshes every 6 weeks (Fandom),
-//     so the next cycle is derived, not yet independently published.
-//     Re-verify closer to the date.
-//   - ww_ww (Whimpering Wastes): 2026-08-31 -> 2026-09-28. CONFIRMED
-//     explicit date from Game8's WhiWa tracker, matching the 28-day
-//     cadence (Aug 3 -> Aug 31 -> Sep 28).
-//   - zzz_shiyu: 2026-08-21 -> 2026-09-18. The Aug 21 - Sep 4 window's
-//     reset lands TODAY (Icy Veins: "next reset of Shiyu Defense will
-//     happen on September 4th") — rolled forward one full 14-day cycle to
-//     the window this pass is actually landing in.
-//   - zzz_deadly: 2026-08-27 -> 2026-09-10. CONFIRMED (Icy Veins): current
-//     stages run Aug 28 - Sep 10, tracks LAST DAY per this key's
-//     convention. Next reset Fri Sep 11.
+//   PRIORITY ORDER: Operator re-confirmed CZN / WW / HSR / ZZZ as P1-P4.
+//   Already the order in data/games.js — no change.
 //
-//   REMOVED:
-//   - ev_czn_rerun (Chizuru & Itsuku, was ending Sep 1). Expired; Prydwen's
-//     current-banners list shows only Arabella/Licinia live now, no
-//     confirmed replacement rerun. Re-add when the next rerun banner is
-//     announced — don't want a stale row implying something is running.
+//   PATCH ROWS — all four rolled:
+//   - czn: S4 (ended Sep 30) -> S5 "A Promise Upon the Snow", Phase 1 Oct
+//     21, Phase 2 (Blazebell) Nov 11 - Dec 2, Phase 3 (Dahlia) from Dec 2
+//     (Game8, Prydwen, Inven). Season end Dec 23 is DERIVED: the 11/11
+//     notice lists a window to "12/23 before maintenance", and it matches
+//     S4's 9-week length (Oct 21 + 63d). Re-verify at the Dec 2 update.
+//   - ww: 3.6 -> 3.8 "Lilies in a Dying Dream", live Nov 12 11:00 UTC+8
+//     (= Nov 11 evening Americas). Runs to Dec 21 (Game8; every 3.8 event
+//     closes Dec 21). WW 4.0 is unannounced (~Dec 22-23 estimated) —
+//     re-verify the end date at the 4.0 broadcast.
+//   - hsr: 4.5 -> 4.7 "Now, Lay Laughter to All Stars", NA Nov 10 / server
+//     Nov 11. Ends Dec 22 NA — the free-claim window closes Dec 23 05:59
+//     UTC+8 (HoYoverse notice via Timesaver), which is the version
+//     boundary. 4.8 (ZZZ collab) still unannounced — ESTIMATE.
+//   - zzz: 3.1 -> 3.3 "Journey to the Sky", live Oct 21. 42-day version,
+//     ends Dec 2 UTC+8 = Dec 1 Americas (TheClick); events close Dec 1.
 //
-//   CONFIDENCE UPGRADES / TIGHTENED ESTIMATES — re-derived from the now-
-//   confirmed HSR 4.6 date:
-//   - ev_hsr_45 (Overdrive: Whirlwind Grand Prix): 2026-09-29 -> 2026-09-27,
-//     to match the corrected hsr patch row (it's patch-tied, was carrying
-//     the old pre-4.6-date estimate).
-//   - ev_hsr_fate2 (Fate/stay night free claim, runs to end of v4.6):
-//     2026-11-10 -> 2026-11-08. Was estimated from a 6-week 4.6 starting
-//     ~Sep 29; 4.6 is now dated Sep 27 NA (Game8, "expected... due to
-//     Version 4.5's shortened duration"), so a standard 6-week 4.6 moves
-//     the estimate two days earlier. Still an ESTIMATE — re-verify at 4.6.
+//   CYCLES — all rolled (EXPIRED unless noted):
+//   - hsr_moc: Sep 28 -> Dec 14. "Survival of the Fittest" Nov 2 - Dec 14
+//     03:59 server (NeonSect, Timesaver, from the official 4.6 post).
+//   - hsr_pf: Sep 14 -> Nov 30. "Imagined Words" Oct 19 - Nov 30 03:59.
+//   - hsr_as: Oct 12 -> Nov 16. "Dominance of Oblivion" Oct 5 - Nov 16.
+//   - hsr_aa: Sep 27 -> Dec 22. Refreshed with 4.7, runs to the version
+//     boundary (same rule as before). Follows the hsr patch row.
+//   - ww_toa: Sep 14 -> Dec 7. 28-day cadence Sep 14 / Oct 12 / Nov 9 /
+//     Dec 7; Nov 9 reset matches GamsGo's calendar. DERIVED, not published.
+//   - ww_ww: Sep 28 -> Nov 23. Cadence Sep 28 / Oct 26 / Nov 23 — matches
+//     GamsGo's projected Nov 23 reset. DERIVED.
+//   - ww_em: Sep 29 -> Dec 21. Patch-tied, follows 3.8.
+//   - czn_fso: Sep 9 -> Dec 2. NEW FSO season opened Nov 11 (Aavarck,
+//     Suppressed Servant, Woman Within the Fog — Game8). Rolls on the
+//     3-week phase boundary, same rule as before -> Dec 2. DERIVED.
+//   - czn_boh: Sep 30 -> Dec 2, and type 'patch' -> 'date'. The 11/11
+//     notice lists a NEW Basin of Hyperspace opening for the Phase 2
+//     window (11/11 - 12/02), so it no longer runs to season end.
+//   - zzz_shiyu: Sep 18 -> Nov 13. Current window Oct 30 - Nov 13; Icy
+//     Veins: "next reset ... November 13th". NEXT RESET convention.
+//   - zzz_deadly: Sep 10 -> Nov 19. Current cycle started Nov 6
+//     (TopUpLive); 14-day Friday cadence -> last day Nov 19, next reset
+//     Fri Nov 20. LAST DAY convention.
 //
-//   CONFIRMED UNCHANGED — checked against current sources, no value change:
-//   - czn patch S4 / czn_boh (2026-09-30): Olga's Phase 3 banner is
-//     independently confirmed Sep 9 - Sep 30, the FINAL phase (czn.gg,
-//     updated Aug 30; Game8). Two anchors on the same date, still holds.
-//   - czn_fso (2026-09-09), ev_czn_arabella / ev_czn_primal (2026-09-09),
-//     ev_czn_beach (2026-09-30): all confirmed still live, nothing expired.
-//   - ww patch 3.6 / ww_em (2026-09-29): Game8 explicitly states 3.6 runs
-//     Aug 20 - Sep 30 (UTC+8) = Sep 29 Americas. Matches exactly — this
-//     was an estimate last pass, now a direct confirmation.
-//   - ww_toa (2026-09-14), ev_ww_36 (2026-09-29): not yet due, no new
-//     information contradicts them.
-//   - hsr_moc (2026-09-28): CONFIRMED Memory of Chaos will NOT refresh
-//     during 4.5's shortened 5-week run (Sportskeeda) — row correctly
-//     holds through the version boundary.
-//   - hsr_pf (2026-09-14): CONFIRMED — new Pure Fiction cycle goes live
-//     2026-09-14, "two days after the second half of 4.5 debuts"
-//     (Sportskeeda). Row already correct.
-//   - zzz patch 3.1 / ev_zzz_31anniv (2026-09-08): CONFIRMED — 3.1 runs
-//     its standard 42 days, closing the evening of Sep 8 Americas /
-//     morning Sep 9 UTC+8, when 3.2 goes live (DayOneFix, Game8).
+//   EVENTS — every old row expired and was REMOVED: ev_czn_arabella,
+//   ev_czn_primal, ev_czn_beach (Sep 9/30), ev_ww_36 (Sep 29), ev_hsr_45
+//   (Sep 27), ev_hsr_fate2 (end of 4.6 = Nov 10 — the free Archer/
+//   Gilgamesh claim is gone), ev_zzz_31anniv (Sep 8).
+//   ADDED:
+//   - ev_czn_rossweisse (critical, Dec 2) — S5 SEASONAL combatant.
+//   - ev_czn_blazebell (standard, Dec 2), ev_czn_tiphera rerun (Nov 24).
+//   - ev_czn_carnival (standard, Dec 2) — 1st anniv Nightmare Carnival +
+//     Flames Illuminating Memories + Rules of Good Order.
+//   - ev_ww_38 (standard, Dec 21) — 3.8 events + Gifts of Bygone Dreams.
+//   - ev_hsr_47free (critical, Dec 22) — free limited 5★ selector.
+//   - ev_zzz_33login (critical, Dec 1) — 10 Master Tapes + 10 Boopons.
+//   - ev_zzz_spooky (standard, Nov 30) — free W-Engine + limited outfit.
 //
 //   - pulls / weeklyYields / resetTimes: unchanged.
 //   - KNOWN CONVENTION SPLIT (deferred, not fixed here): zzz_shiyu tracks
 //     NEXT RESET date, zzz_deadly tracks LAST DAY of the cycle. Design
 //     decision, not a patch-day edit — see prior header note.
-// Sources: RPG Site, Notebookcheck, Game8 (HSR 4.5/4.6, WW 3.6/WhiWa/
-//   Endstate Matrix, ZZZ 3.2, CZN Olga), Sportskeeda (HSR 4.5 endgame
-//   calendar), Icy Veins (Apocalyptic Shadow, Shiyu Defense, Deadly
-//   Assault), Fandom (Apocalyptic Shadow cadence), czn.gg, Prydwen,
-//   DayOneFix — cross-checked 2026-09-04.
+// Sources: Game8 (CZN S5 + banners, WW 3.8 schedule/events), Prydwen,
+//   chaoszeronightmare.net, czn.gg 11/11 notice, Inven Global, Final
+//   Weapon, RPG Site, wuwa.uk, wudamage, GamsGo (WW endgame calendar),
+//   Notebookcheck (HSR 4.6), NeonSect + Timesaver (HSR endgame + 4.7
+//   free claims), Gematsu / TheClick (ZZZ 3.3), AllThingsHow (ZZZ 3.3
+//   events), Icy Veins (Shiyu), TopUpLive (Deadly Assault) —
+//   cross-checked 2026-11-12.
 // ═══════════════════════════════════════════════════════════
 
 const CONFIG = {
   version: '5.19',
-  lastVerified: '2026-09-04',
+  lastVerified: '2026-11-12',
 
   resetTimes: {
     hsr: { dailyUTC: 10, weeklyDay: 1, weeklyUTC: 10 },
@@ -101,108 +99,85 @@ const CONFIG = {
   },
 
   patches: [
-    // CZN: Season 4 "Shattered Light and Claw" — live since Jul 28/29.
-    // Phase 1 Hilde (Jul 29), Phase 2 Arabella (Aug 19 - Sep 9), Phase 3
-    // Olga (Sep 9 - Sep 30) is the FINAL phase. End date now CONFIRMED
-    // Sep 30 — see header.
-    { game: 'czn', version: 'S4', label: 'SEASON 4 — SHATTERED LIGHT AND CLAW', ends: '2026-09-30', resetDay: 0 },
-    // WW 3.6 "Lamplight in Mirage, Sword's Resolve in Heart" — Americas
-    // Aug 19, most regions Aug 20. Ends Sep 30 UTC+8 = Sep 29 Americas.
-    // Phase 2 (Jingran) opens Sep 10.
-    { game: 'ww',  version: '3.6', label: 'VER 3.6 — LAMPLIGHT IN MIRAGE', ends: '2026-09-29', resetDay: 1 },
-    // HSR 4.5 "To Roll the Stars in Astropolis" — NA Aug 25 -> Sep 27.
-    // CONFIRMED 5-week patch (Game8). 4.6 dated Sep 27 NA / Sep 28 EU-Asia,
-    // itself an estimate from the 5-week shortening — re-verify at 4.6.
-    { game: 'hsr', version: '4.5', label: 'VER 4.5 — TO ROLL THE STARS IN ASTROPOLIS', ends: '2026-09-27', resetDay: 1 },
-    // ZZZ 3.1 "The Long Goodbye" (2nd anniversary) — live Jul 29, runs its
-    // standard 42 days. 3.2 dated Sep 9 (Game8), so Sep 8 holds.
-    { game: 'zzz', version: '3.1', label: 'VER 3.1 — THE LONG GOODBYE', ends: '2026-09-08', resetDay: 1 },
+    // CZN: Season 5 "A Promise Upon the Snow" — 1st anniversary season.
+    // Phase 1 Rossweisse (Oct 21), Phase 2 Blazebell (Nov 11 - Dec 2),
+    // Phase 3 Dahlia (Dec 2). End Dec 23 DERIVED — see header.
+    { game: 'czn', version: 'S5', label: 'SEASON 5 — A PROMISE UPON THE SNOW', ends: '2026-12-23', resetDay: 0 },
+    // WW 3.8 "Lilies in a Dying Dream" — Nov 12 11:00 UTC+8 (Nov 11 PT).
+    // Phase 1 Lily to Dec 3 09:59 UTC+8, then Phase 2. Ends Dec 21.
+    { game: 'ww',  version: '3.8', label: 'VER 3.8 — LILIES IN A DYING DREAM', ends: '2026-12-21', resetDay: 1 },
+    // HSR 4.7 "Now, Lay Laughter to All Stars" — NA Nov 10 / server Nov 11.
+    // Ends Dec 22 NA (free-claim window closes Dec 23 05:59 UTC+8).
+    { game: 'hsr', version: '4.7', label: 'VER 4.7 — NOW, LAY LAUGHTER TO ALL STARS', ends: '2026-12-22', resetDay: 1 },
+    // ZZZ 3.3 "Journey to the Sky" — live Oct 21, 42 days, ends Dec 2
+    // UTC+8 = Dec 1 Americas. Phase 2 (Severian) Nov 11 - Dec 1.
+    { game: 'zzz', version: '3.3', label: 'VER 3.3 — JOURNEY TO THE SKY', ends: '2026-12-01', resetDay: 1 },
   ],
 
   cycles: {
-    // HSR v4.5 endgame calendar:
-    // AA refreshed Aug 26 with the version (Sportskeeda) — runs to the
-    //   next version boundary, now dated Sep 27 (NA). Rolls with 4.6.
-    // AS: progression reset Aug 31 (Sportskeeda, Icy Veins); refreshes
-    //   every 6 weeks (Fandom) -> next ~Oct 12, ESTIMATE, re-verify.
-    // PF: current cycle unchanged, refreshes Sep 14 — CONFIRMED, "two days
-    //   after the second half of 4.5 debuts" (Sportskeeda).
-    // MoC "Stormcleanse" Aug 17 - Sep 28 — CONFIRMED will NOT refresh
-    //   during 4.5's shortened 5-week run (Sportskeeda); row unchanged.
-    hsr_moc:    { ends: '2026-09-28', type: 'date',   label: 'Memory of Chaos' },
-    hsr_pf:     { ends: '2026-09-14', type: 'date',   label: 'Pure Fiction' },
-    hsr_as:     { ends: '2026-10-12', type: 'date',   label: 'Apocalyptic Shadow' },
-    hsr_aa:     { ends: '2026-09-27', type: 'date',   label: 'Anomaly Arbitration' },
+    // HSR v4.7 endgame calendar (dates from the official 4.6 post — these
+    // windows run past the 4.6/4.7 boundary):
+    // MoC "Survival of the Fittest" Nov 2 - Dec 14 03:59 server.
+    // PF "Imagined Words" Oct 19 - Nov 30 03:59.
+    // AS "Dominance of Oblivion" Oct 5 - Nov 16 03:59.
+    // AA refreshed with 4.7 -> runs to the version boundary (Dec 22 NA).
+    hsr_moc:    { ends: '2026-12-14', type: 'date',   label: 'Memory of Chaos' },
+    hsr_pf:     { ends: '2026-11-30', type: 'date',   label: 'Pure Fiction' },
+    hsr_as:     { ends: '2026-11-16', type: 'date',   label: 'Apocalyptic Shadow' },
+    hsr_aa:     { ends: '2026-12-22', type: 'date',   label: 'Anomaly Arbitration' },
 
-    // WW v3.6 (Americas Aug 19 - Sep 29)
-    // ToA 28-day Monday cadence: Jun 22 / Jul 20 / Aug 17 / Sep 14.
-    // WhiWa: CONFIRMED next reset Sep 28 (Game8 WhiWa tracker), matching
-    //   the 28-day cadence (Aug 3 -> Aug 31 -> Sep 28).
-    // Endstate Matrix is patch-tied -> follows 3.6 to Sep 29.
-    ww_toa:     { ends: '2026-09-14', type: 'date',   label: 'Tower of Adversity (all zones incl. Hazard Zone)' },
-    ww_ww:      { ends: '2026-09-28', type: 'date',   label: 'Whimpering Wastes' },
-    ww_em:      { ends: '2026-09-29', type: 'patch',  label: 'Endstate Matrix (v3.6 phase)' },
+    // WW v3.8 (Nov 12 - Dec 21)
+    // ToA 28-day Monday cadence: Sep 14 / Oct 12 / Nov 9 / Dec 7.
+    // WhiWa 28-day cadence: Sep 28 / Oct 26 / Nov 23 / Dec 21.
+    // Endstate Matrix is patch-tied -> follows 3.8 to Dec 21.
+    ww_toa:     { ends: '2026-12-07', type: 'date',   label: 'Tower of Adversity (all zones incl. Hazard Zone)' },
+    ww_ww:      { ends: '2026-11-23', type: 'date',   label: 'Whimpering Wastes' },
+    ww_em:      { ends: '2026-12-21', type: 'patch',  label: 'Endstate Matrix (v3.8 phase)' },
     ww_tg:      { ends: 'weekly',     type: 'weekly', label: 'Fantasies of Thousand Gateways' },
 
-    // CZN — Season 4, Phase 2 live since Aug 19.
-    // BoH: revamped with S4 (3-pick Support Effect System, 8 floors not
-    //   10). Patch-tied -> Sep 30.
-    // FSO: NEW season opened Aug 19 (Beginning of Desire, Punisher of
-    //   Resentment, Suppressed Servant). Now rolls on the 3-week phase
-    //   boundary -> Sep 9. DERIVED, no published end date.
-    czn_boh:    { ends: '2026-09-30', type: 'patch',  label: 'Basin of Hyperspace' },
-    czn_fso:    { ends: '2026-09-09', type: 'date',   label: 'Full-Scale Offensive' },
+    // CZN — Season 5, Phase 2 live since Nov 11.
+    // BoH: NEW Basin opened Nov 11 for the Phase 2 window -> Dec 2.
+    // FSO: NEW season opened Nov 11 (Aavarck, Suppressed Servant, Woman
+    //   Within the Fog). Rolls on the 3-week phase boundary -> Dec 2.
+    //   DERIVED, no published end date.
+    czn_boh:    { ends: '2026-12-02', type: 'date',   label: 'Basin of Hyperspace' },
+    czn_fso:    { ends: '2026-12-02', type: 'date',   label: 'Full-Scale Offensive' },
     czn_sortie: { ends: 'weekly',     type: 'weekly', label: 'Sortie Mode run' },
 
-    // ZZZ v3.1 "The Long Goodbye" live Jul 29 (2nd anniversary), closes
-    //   Sep 8/9 as 3.2 launches.
-    // Shiyu Critical: window Sep 4 - Sep 18, tracks NEXT RESET date per
-    //   this key's convention. Today (Sep 4) IS the reset day — CONFIRMED
-    //   (Icy Veins: "next reset of Shiyu Defense will happen on September
-    //   4th"). Rolled one full cycle to the window starting today.
-    // Deadly Assault: stages Aug 28 - Sep 10, tracks LAST DAY per this
-    //   key's convention. CONFIRMED (Icy Veins). Next reset Fri Sep 11.
-    //   See header re: the convention split between these two.
-    zzz_shiyu:  { ends: '2026-09-18', type: 'date',   label: 'Shiyu Defense / Critical Node' },
-    zzz_deadly: { ends: '2026-09-10', type: 'date',   label: 'Deadly Assault' },
+    // ZZZ v3.3 "Journey to the Sky" live Oct 21, closes Dec 1/2.
+    // Shiyu Critical: window Oct 30 - Nov 13, tracks NEXT RESET date per
+    //   this key's convention (Icy Veins: "next reset ... November 13th").
+    // Deadly Assault: cycle started Nov 6, tracks LAST DAY per this key's
+    //   convention -> Nov 19. Next reset Fri Nov 20.
+    zzz_shiyu:  { ends: '2026-11-13', type: 'date',   label: 'Shiyu Defense / Critical Node' },
+    zzz_deadly: { ends: '2026-11-19', type: 'date',   label: 'Deadly Assault' },
     zzz_hollow: { ends: 'weekly',     type: 'weekly', label: 'Hollow Zero / Operation Matrix' },
   },
 
   events: [
-    // ── CZN ── Season 4 "Shattered Light and Claw", Phase 2 live Aug 19.
-    // Arabella is a SEASONAL combatant: obtainable ONLY during this rate-up
-    // window, does not join the standard pool afterward. Hard deadline —
-    // tiered critical. Licinia (Striker Partner) runs the same window.
-    { id: 'ev_czn_arabella', game: 'czn', tier: 'critical', name: 'Arabella & Licinia Rate-Up (Phase 2)', ends: '2026-09-09', desc: 'SEASONAL combatant — obtainable only during this banner, does NOT enter the standard pool afterward. Instinct Striker, introduces the Fracture DoT tag. Licinia (Striker Partner) runs the full window. Ends before Sep 9 maintenance', currency: { type: 'crystal', amount: 0, note: 'Hard deadline, no rerun. Soft pity 58 / hard 70. Phase 3 (Olga) opens Sep 9 — budget for both' } },
-    // Primal Desire — Phase 2 story-side event, through Sep 9 (GameDaily).
-    { id: 'ev_czn_primal', game: 'czn', tier: 'standard', name: 'Primal Desire', ends: '2026-09-09', desc: 'Phase 2 event — interrogate key characters connected to Arabella for rewards. Runs with "The Black Panther Left Uncared For", the second chapter of Shattered Light and Claw', currency: { type: 'crystal', amount: 0, note: 'Phase-length event; closes with Phase 2 on Sep 9' } },
-    // Beach Cafe Festival: 9-week seasonal event, CONFIRMED through Sep 30
-    // (Smilegate press). Objectives refresh every 3 weeks — Week 2 set
-    // opened with the Aug 19 update.
-    { id: 'ev_czn_beach',  game: 'czn', tier: 'standard', name: 'Beach Cafe Festival', ends: '2026-09-30', desc: 'S4 seasonal event, 9 weeks. New mission objectives every 3 weeks — earns Midsummer Night Memories for Save Data background, Rei outfit and stickers', currency: { type: 'crystal', amount: 0, note: 'Mission rewards + exchange shop; new objectives every 3 weeks — do not let them stack up' } },
-    // Chizuru & Itsuku rerun banners ended Sep 1 with no confirmed
-    // replacement yet (Prydwen's current-banners list shows only
-    // Arabella/Licinia live). Row removed rather than left stale — re-add
-    // when the next rerun is announced.
+    // ── CZN ── Season 5, Phase 2 live Nov 11.
+    // Rossweisse is the S5 SEASONAL combatant (1st anniversary) — seasonal
+    // units do not join the standard pool afterward. Hard deadline.
+    { id: 'ev_czn_rossweisse', game: 'czn', tier: 'critical', name: 'Rossweisse & Sig Rate-Up (Seasonal)', ends: '2026-12-02', desc: 'SEASONAL 1st-anniversary combatant — Justice Striker, Binding keyword. Obtainable only during this banner (Oct 21 - Dec 2). Sig is her signature Partner, same window. Ends before Dec 2 maintenance', currency: { type: 'crystal', amount: 0, note: 'Hard deadline. Soft pity 58 / hard 70. Dahlia (Justice Hunter) opens Dec 2 — budget across both' } },
+    { id: 'ev_czn_blazebell',  game: 'czn', tier: 'standard', name: 'Blazebell & Vivian Rate-Up (Phase 2)', ends: '2026-12-02', desc: 'New Justice Controller — AP generation, card draw, healing; pairs with Rossweisse. Vivian is her signature Controller Partner. Nov 11 - Dec 2', currency: { type: 'crystal', amount: 0, note: 'Phase-length banner, closes at the Dec 2 update' } },
+    { id: 'ev_czn_tiphera',    game: 'czn', tier: 'standard', name: 'Tiphera & Tiana Rerun', ends: '2026-11-24', desc: 'Rerun banner Nov 3 - Nov 24 18:00 UTC. Rita & Ivy rerun follows Nov 24 - Dec 15', currency: { type: 'crystal', amount: 0, note: 'Rerun — only pull if filling a gap' } },
+    // 1st anniversary "Nightmare Carnival" (adjusted with the Nov 11 patch)
+    // plus the two Phase 2 events, all closing at the Dec 2 update.
+    { id: 'ev_czn_carnival',   game: 'czn', tier: 'standard', name: 'Nightmare Carnival / Flames Illuminating Memories', ends: '2026-12-02', desc: '1st-anniversary Nightmare Carnival (Blazebell now a guest manager in Nightmare Dream Park), Rules of Good Order, and the Flames Illuminating Memories story-mission event — all run to Dec 2', currency: { type: 'crystal', amount: 0, note: 'Anniversary rewards — clear mission sets and exchange shop before Dec 2' } },
 
-    // ── WW ── v3.6 "Lamplight in Mirage, Sword's Resolve in Heart".
-    // Americas Aug 19, most other regions Aug 20. Event roster CONFIRMED by
-    // name; individual windows still unpublished, so this row is patch-tied.
-    // Verify in-game once the event timers are visible.
-    { id: 'ev_ww_36',      game: 'ww',  tier: 'standard', name: 'v3.6 Events — Resonance Sim Realm / Coded Deception', ends: '2026-09-29', desc: 'Resonance Sim Realm, Second Coming of Solaris: Coded Deception, If Dreams Still Reverberate, The Strings Remember, Wuthering Exploration, Gifts of Drifting Mist (individual windows unpublished — verify in-game)', currency: { type: 'astrite', amount: 0, note: 'Patch-length assumption; confirm individual event end dates in-game' } },
+    // ── WW ── v3.8 "Lilies in a Dying Dream", Nov 12 - Dec 21.
+    // Lahai-Roi Blocks (Nov 19 - Dec 3), Dreamfield Odyssey (Dec 3 - 21),
+    // Whither the Wind login (Dec 7 - 21) open later — check in-game.
+    { id: 'ev_ww_38',      game: 'ww',  tier: 'standard', name: 'v3.8 Events — Unwritten Dreams / Bygone Dreams login', ends: '2026-12-21', desc: 'Second Coming of Solaris: Unwritten Dreams, Gifts of Bygone Dreams (7-day login), Gifts of Starpath, Tactical Hologram: Calamity Effigy. Later: Lahai-Roi Blocks Nov 19, Dreamfield Odyssey + Lollo Campaign Dec 3, Whither the Wind Dec 7', currency: { type: 'astrite', amount: 0, note: 'Patch-length; 7-day login can be claimed on any 7 days before Dec 21' } },
 
-    // ── HSR ── v4.5 "To Roll the Stars in Astropolis": NA Aug 25, global
-    // Aug 26. CONFIRMED 5-week patch -> ends 2026-09-27 NA, matching the
-    // patch row (Game8).
-    { id: 'ev_hsr_45',     game: 'hsr', tier: 'standard', name: 'v4.5 Overdrive: Whirlwind Grand Prix (opens Aug 25)', ends: '2026-09-27', desc: 'Flagship 4.5 event, launches with the patch. Rewards the A Race to the Horizon 4-star Light Cone. Minuscule Great Adventure follows in Phase 2 from Sep 12', currency: { type: 'jade', amount: 0, note: '7-day login after 4.5 goes live grants 10x Special Star Rail Pass' } },
-    // Fate/stay night [UBW] Part 2. Free Archer OR Gilgamesh claim runs to
-    // END OF v4.6. Nov 8 is an ESTIMATE — 4.6 is now dated Sep 27 NA
-    // (Game8), so a standard 6-week 4.6 lands ~Nov 8. RE-VERIFY at 4.6.
-    { id: 'ev_hsr_fate2',  game: 'hsr', tier: 'critical', name: 'Fate/stay night Pt 2 — Free Archer or Gilgamesh', ends: '2026-11-08', desc: 'Free Archer OR Gilgamesh claim + mats to Lv60, open until end of v4.6 (ends date ESTIMATED — re-verify at 4.6)', currency: { type: 'jade', amount: 0, note: 'Rin & Gilgamesh limited gacha share one separate collab pity pool' } },
+    // ── HSR ── v4.7 "Now, Lay Laughter to All Stars": NA Nov 10.
+    // Free claims all share one window, ending Dec 23 05:59 UTC+8 =
+    // Dec 22 21:59 UTC (HoYoverse Opening Gifts notice via Timesaver).
+    { id: 'ev_hsr_47free', game: 'hsr', tier: 'critical', name: 'v4.7 Free Limited 5★ — Acheron / Imbibitor Lunae / Jing Yuan', ends: '2026-12-22', desc: 'Log in to claim ONE free limited 5★ (Acheron, Dan Heng • Imbibitor Lunae, or Jing Yuan) + a free Affinitive Eidolon for the same three, a Golden Companion Spirit, and 20 Star Rail Special Passes', currency: { type: 'jade', amount: 0, note: 'Closes Dec 23 05:59 UTC+8 (Dec 22 evening NA) — highest-value claim of the patch' } },
 
-    // ── ZZZ ── v3.1 "The Long Goodbye", 2nd anniversary. Ends Sep 8;
-    // v3.2 dated Sep 9 (Game8), so the patch row holds.
-    { id: 'ev_zzz_31anniv', game: 'zzz', tier: 'critical', name: 'v3.1 2nd Anniversary — free S-Rank choice', ends: '2026-09-08', desc: 'Free limited S-Rank Agent of choice + exclusive W-Engine, 1,600 Polychrome. Gift from the Clouds and The Great En-Nah Giveaway login events give 20 Encrypted Master Tapes + 10 Boopons total. Sigrid banner opens Aug 19', currency: { type: 'polychrome', amount: 1600, note: 'Free limited S-Rank + W-Engine choice — highest-value claim of the year, do not miss' } },
+    // ── ZZZ ── v3.3 "Journey to the Sky", ends Dec 1 Americas.
+    { id: 'ev_zzz_33login', game: 'zzz', tier: 'critical', name: 'v3.3 Check-ins — 10 Master Tapes + 10 Boopons', ends: '2026-12-01', desc: 'All-New Program: log in any 7 days for 10 Encrypted Master Tapes. "En-Nah" Into Your Lap (from Nov 11): any 7 days for 10 Boopons. Both end Dec 1 03:59 server', currency: { type: 'polychrome', amount: 0, note: '10 free limited pulls — 7 logins needed, do not leave it to the last week' } },
+    { id: 'ev_zzz_spooky',  game: 'zzz', tier: 'standard', name: 'Spooky Funhouse Tales', ends: '2026-11-30', desc: 'Halloween HIA Club event — free A-Rank W-Engine Candlelit Scheme, and the limited Angels of Delusion outfit for clearing every Mission Mode stage. Ends Nov 30 03:59 server', currency: { type: 'polychrome', amount: 0, note: 'Limited outfit is a full-clear reward — do not skip the last stages' } },
   ],
 
   pulls: {
