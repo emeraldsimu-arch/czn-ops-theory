@@ -1,7 +1,25 @@
 // ═══════════════════════════════════════════════════════════
-// NEXUS v5.20 — APP.JS
+// NEXUS v5.21 — APP.JS
 // All application logic and state management. localStorage only.
 // GitHub: emeraldsimu-arch/czn-ops-theory
+// Changes from v5.20 — "Field-ready" release (Nov 2026 audit D1–D9):
+//   - D1 EVENTS PANEL. CONFIG.events was only read by buildTodayPanel(),
+//     and only for critical rows ≤3 days out — standard events never
+//     rendered anywhere. buildEvents() lists every live event above the
+//     game cards: critical pinned, then soonest; 3 standard rows visible,
+//     the rest behind "+N more"; tap a row for desc + currency note.
+//   - D5 Endgame Alerts render inside the Today panel ("Next resets") and
+//     skip cycles already shown as a Today priority line. Collapsed cards
+//     show a one-line summary (cardSummary / refreshCardSummary).
+//   - D4 Tab bar: short labels (Track / Plan / Pulls / Record) in a fixed
+//     bottom bar ≤700px; updateDispatchBar() keeps the label spans when
+//     it adds the badge; switchView() sets aria-selected and scrolls to top.
+//   - D8 Task/cycle rows are role=checkbox with aria-checked kept in sync;
+//     card headers role=button + aria-expanded; Enter/Space activates
+//     them; urgency carries a ⚠ marker, not just red.
+//   - D2/D3/D6/D7/D9 are CSS / index.html / games.js only (44px rows,
+//     11px/10px type floor, throttled starfield, self-hosted fonts,
+//     WEEK_PLAN colours as CSS variables).
 // Changes from v5.19 — "Integrity" release (Nov 2026 system audit, F1–F9):
 //   - F1 DATES READ ONE DAY EARLY WEST OF UTC. `new Date('2026-11-13')`
 //     parses as UTC midnight = 18:00 Nov 12 in US Central; setHours(0)
@@ -594,7 +612,7 @@ function buildTodayPanel() {
     const diff = daysUntil(e.ends);
     if (diff !== null && diff >= 0 && diff <= 3) {
       const g = GAMES.find(x => x.id === e.game);
-      items.push({ p:1, game: g?.short || e.game.toUpperCase(), text: e.name, meta: `⚠ ${diff}d left`, color: `var(--${e.game})` });
+      items.push({ p:1, game: g?.short || e.game.toUpperCase(), text: e.name, meta: diff === 0 ? '⚠ Ends today' : `⚠ ${diff}d left`, color: `var(--${e.game})` });
     }
   });
   GAMES.forEach(g => {
@@ -602,7 +620,7 @@ function buildTodayPanel() {
       if (!getCy(m.cycleKey) && isCycleOpen(m.cycleKey)) {
         const d = daysUntilCycleEnds(m.cycleKey);
         if (d !== null && d <= 1) {
-          items.push({ p:2, game: g.short, text: m.name, meta: d <= 0 ? 'Resets TODAY' : 'Resets TOMORROW', color: `var(--${g.id})` });
+          items.push({ p:2, game: g.short, text: m.name, meta: d <= 0 ? 'Resets TODAY' : 'Resets TOMORROW', color: `var(--${g.id})`, cycleKey: m.cycleKey });
         }
       }
     });
@@ -615,6 +633,8 @@ function buildTodayPanel() {
   if (plan) items.push({ p:3, game: 'NEXUS', text: plan.focus, meta: `${budgetLabel} · ${loadClass} session`, color: 'var(--text-dim)' });
 
   const shown = items.slice(0, 3);
+  // v5.21: Endgame Alerts below skip whatever is already a priority line.
+  _todayCycleKeys = new Set(shown.filter(i => i.cycleKey).map(i => i.cycleKey));
   const d = today.toLocaleDateString('en-US', { weekday:'long', month:'short', day:'numeric' });
   let html = `<div class="today-panel"><div class="today-hdr"><div class="today-title">Today's Priority</div><div class="today-date">${d.toUpperCase()}</div></div><div class="today-items">`;
   if (!shown.length) {
@@ -630,8 +650,13 @@ function buildTodayPanel() {
       </div>`;
     });
   }
-  html += '</div></div>';
+  html += '</div>';
+  // v5.21 (D5): Endgame Alerts live inside the Today panel instead of a
+  // separate five-card block above the game cards.
+  html += `<div class="today-alerts"><div class="today-alerts-hdr">Next resets</div><div class="urg-row" id="urgRow"></div></div>`;
+  html += '</div>';
   document.getElementById('todayPanel').innerHTML = html;
+  buildUrgency();
 }
 
 // ── DISPATCH BAR ──
@@ -644,15 +669,22 @@ function updateDispatchBar() {
   document.getElementById('dCount').textContent = done + ' / ' + total;
   const pips = document.getElementById('dPips');
   pips.innerHTML = DISPATCHES.map((_,i) => `<div class="pip${i<done?' earned':''}"></div>`).join('');
+  // v5.21: keep the long/short label spans (bottom tab bar on phones).
   const tab = document.getElementById('achTab');
-  if (done > 0 && done < total) tab.innerHTML = `Achievements <span class="dispatch-badge">${done}</span>`;
-  else if (done >= total)        tab.innerHTML = `Achievements <span class="dispatch-badge" style="background:var(--ok)">✓</span>`;
-  else                           tab.textContent = 'Achievements';
+  const lbl = `<span class="nt-long">Achievements</span><span class="nt-short">Record</span>`;
+  if (done > 0 && done < total) tab.innerHTML = `${lbl} <span class="dispatch-badge">${done}</span>`;
+  else if (done >= total)        tab.innerHTML = `${lbl} <span class="dispatch-badge" style="background:var(--ok)">✓</span>`;
+  else                           tab.innerHTML = lbl;
 }
 
-// ── URGENCY BANNER ──
+// ── URGENCY (Endgame Alerts) ──
+// v5.21: renders into #urgRow inside the Today panel (buildTodayPanel calls
+// this after building the panel). Skips cycles already shown as a Today
+// priority line; marks ≤2 days with ⚠ so urgency isn't colour-only (D8).
+let _todayCycleKeys = new Set();
 function buildUrgency() {
-  const today = new Date(); today.setHours(0,0,0,0);
+  const row = document.getElementById('urgRow');
+  if (!row) return;
   const lt    = getLT();
   const isFirstLoad = (lt.totalTasksCompleted || 0) === 0;
   const urgencyThreshold = isFirstLoad ? 14 : 999;
@@ -660,7 +692,7 @@ function buildUrgency() {
   const allItems = [];
   GAMES.forEach(g => {
     g.endgameModes.forEach(m => {
-      if (!getCy(m.cycleKey) && isCycleOpen(m.cycleKey)) {
+      if (!getCy(m.cycleKey) && isCycleOpen(m.cycleKey) && !_todayCycleKeys.has(m.cycleKey)) {
         const d = daysUntilCycleEnds(m.cycleKey);
         if (isFirstLoad && d !== null && d > urgencyThreshold) return;
         allItems.push({ game: g, mode: m, days: d });
@@ -679,7 +711,7 @@ function buildUrgency() {
   let html = '';
   top.forEach(({ game: g, mode: m, days: d }) => {
     const cls = d !== null && d <= 2 ? '' : 'warn';
-    const txt = d === null ? 'Weekly' : d <= 0 ? 'TODAY!' : d + 'd left';
+    const txt = d === null ? 'Weekly' : (d <= 2 ? '⚠ ' : '') + (d <= 0 ? 'Today' : d + 'd left');
     html += `<div class="urg-card ${cls}">
       <div class="udot"></div>
       <div class="ubody"><div class="ugame">${g.short}</div><div class="umode">${m.name}</div></div>
@@ -690,7 +722,7 @@ function buildUrgency() {
   if (!top.length) {
     html = `<div class="urg-card clear"><div class="udot"></div><div class="ubody"><div class="ugame">Status</div><div class="umode">All cycle modes cleared</div></div><div class="udays" style="color:var(--ok)">✓ CLEAR</div></div>`;
   }
-  document.getElementById('urgRow').innerHTML = html;
+  row.innerHTML = html;
 }
 
 // ── PATCH LABEL / DEADLINE RESOLVERS ──
@@ -715,6 +747,75 @@ function resolveDeadline(gid) {
     soon: days >= 0 && days <= 7,
     days,
   };
+}
+
+// ── EVENTS PANEL (v5.21, audit D1) ──
+// Every live row in CONFIG.events, which before v5.21 only surfaced when
+// critical AND ≤3 days out. Critical events are pinned on top; within each
+// tier, soonest first. The first EVENTS_VISIBLE standard rows show, the rest
+// sit behind "+N more". Expired rows are hidden (the freshness banner
+// already flags them). Tap a row to see its description and currency note.
+const EVENTS_VISIBLE = 3;
+const escHTML = t => String(t ?? '').replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
+function buildEvents() {
+  const host = document.getElementById('eventsPanel');
+  if (!host) return;
+  const live = CONFIG.events
+    .map(e => ({ e, d: daysUntil(e.ends) }))
+    .filter(x => x.d !== null && x.d >= 0)
+    .sort((a, b) => (a.e.tier === 'critical' ? 0 : 1) - (b.e.tier === 'critical' ? 0 : 1) || a.d - b.d);
+
+  const row = ({ e, d }) => {
+    const g    = GAMES.find(x => x.id === e.game);
+    const crit = e.tier === 'critical';
+    const days = d === 0 ? 'Ends today' : d === 1 ? '1 day left' : d + ' days left';
+    const cls  = d <= 2 ? 'urgent' : d <= 7 ? 'soon' : '';
+    const ends = parseDay(e.ends).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    const note = e.currency?.note ? `<div class="ev-note">${escHTML(e.currency.note)}</div>` : '';
+    return `<details class="ev-row${crit ? ' critical' : ''}" style="--ev-accent:var(--${e.game});--ev-rgb:var(--${e.game}-rgb)">
+      <summary>
+        <span class="ev-game">${g ? g.short : e.game.toUpperCase()}</span>
+        <span class="ev-name">${crit ? '<span class="ev-crit">⚠ Critical</span>' : ''}${escHTML(e.name)}</span>
+        <span class="ev-days ${cls}" title="Ends ${ends}">${days}</span>
+        <span class="ev-chev" aria-hidden="true">▸</span>
+      </summary>
+      <div class="ev-body">${escHTML(e.desc)} <span class="ev-note">· ends ${ends}</span>${note}</div>
+    </details>`;
+  };
+
+  const crit  = live.filter(x => x.e.tier === 'critical');
+  const std   = live.filter(x => x.e.tier !== 'critical');
+  const shown = std.slice(0, EVENTS_VISIBLE), rest = std.slice(EVENTS_VISIBLE);
+  let html = `<div class="sec-hdr">Events &amp; Deadlines <span class="tcnt">${live.length}</span></div>`;
+  if (!live.length) {
+    html += `<div class="ev-empty">No live events in config.</div>`;
+  } else {
+    html += `<div class="ev-list">${crit.map(row).join('')}${shown.map(row).join('')}</div>`;
+    if (rest.length) html += `<details class="ev-more"><summary>+ ${rest.length} more event${rest.length > 1 ? 's' : ''}</summary><div class="ev-list">${rest.map(row).join('')}</div></details>`;
+  }
+  host.innerHTML = html;
+}
+
+// ── COLLAPSED-CARD SUMMARY (v5.21, audit D5) ──
+// One line shown only while a card is collapsed, so P2–P4 still report
+// state without opening: dailies, cycle clears, and how many cycles are
+// due within 2 days.
+function cardSummary(g) {
+  const all = ld();
+  const dd  = g.daily.filter((_, i) => getv(null, g.id, 'daily', i, all)).length;
+  const cd  = g.endgameModes.filter(m => getCy(m.cycleKey)).length;
+  const due = g.endgameModes.filter(m => {
+    if (getCy(m.cycleKey) || !isCycleOpen(m.cycleKey)) return false;
+    const d = daysUntilCycleEnds(m.cycleKey);
+    return d !== null && d <= 2;
+  }).length;
+  return `Daily ${dd}/${g.daily.length} · Cycles ${cd}/${g.endgameModes.length}` +
+         (due ? ` · <span class="g-sum-due">⚠ ${due} due ≤2d</span>` : '');
+}
+function refreshCardSummary(gid) {
+  const g  = GAMES.find(x => x.id === gid);
+  const el = document.getElementById('gsum-' + gid);
+  if (g && el) el.innerHTML = cardSummary(g);
 }
 
 // ── GAME CARDS ──
@@ -742,7 +843,7 @@ function buildCard(g, s) {
 
   const dailyHTML = g.daily.map((t, i) => {
     const ok = getv(s, g.id, 'daily', i, all);
-    return `<div class="trow${ok?' done':''}" onclick="togT('${g.id}','daily',${i},this,event)">
+    return `<div class="trow${ok?' done':''}" role="checkbox" tabindex="0" aria-checked="${ok}" onclick="togT('${g.id}','daily',${i},this,event)">
       <div class="tcheck"></div><span class="ttext">${t.t}</span>
       ${t.deadline ? `<span class="tdl">↯ ${t.deadline}</span>` : ''}
       <span class="ttag tag-${t.tag}">${t.tag}</span></div>`;
@@ -751,7 +852,7 @@ function buildCard(g, s) {
   const weeklyHTML = g.weekly.map((t, i) => {
     const ok = getv(s, g.id, 'weekly', i, all);
     const isLocked = t.unlocks && (daysUntil(t.unlocks) ?? 0) > 0;
-    return `<div class="trow${ok?' done':''}${isLocked?' locked':''}" onclick="${isLocked?'':` togT('${g.id}','weekly',${i},this,event)`}">
+    return `<div class="trow${ok?' done':''}${isLocked?' locked':''}" role="checkbox" tabindex="${isLocked?-1:0}" aria-checked="${ok}"${isLocked?' aria-disabled="true"':''} onclick="${isLocked?'':` togT('${g.id}','weekly',${i},this,event)`}">
       <div class="tcheck"></div><span class="ttext">${t.t}</span>
       ${t.deadline ? `<span class="tdl">↯ ${t.deadline}</span>` : ''}
       ${isLocked ? `<span class="tdl">Unlocks ${t.unlocks}</span>` : ''}
@@ -767,7 +868,7 @@ function buildCard(g, s) {
     const lbl      = cycleResetLabel(m.cycleKey);
     const daysLeft = daysUntilCycleEnds(m.cycleKey);
     const urgent   = !cl && daysLeft !== null && daysLeft >= 0 && daysLeft <= 2;
-    return `<div class="cycle-row${cl?' cleared':''}${!unlocked?' locked':''}" onclick="${unlocked?`togCy('${m.cycleKey}',this)`:''}">
+    return `<div class="cycle-row${cl?' cleared':''}${!unlocked?' locked':''}" role="checkbox" tabindex="${unlocked?0:-1}" aria-checked="${cl}"${unlocked?'':' aria-disabled="true"'} aria-label="${m.name}, ${lbl}" onclick="${unlocked?`togCy('${m.cycleKey}',this)`:''}">
       <div class="ccheck"></div>
       <span class="ctext">${m.name}</span>
       <span class="cbadge" style="${urgent?'color:var(--danger)':''}">${lbl}</span>
@@ -776,13 +877,14 @@ function buildCard(g, s) {
   }).join('');
 
   return `<div class="game-card${collapsed?' collapsed':''}${isComplete?' done-card':''}" data-game="${g.id}" id="card-${g.id}" style="--accent:${a};--accent-dim:${d}">
-    <div class="game-top" onclick="togCol('${g.id}')">
+    <div class="game-top" role="button" tabindex="0" aria-expanded="${!collapsed}" aria-label="${g.name}" onclick="togCol('${g.id}')">
       <div class="gtop-row">
         <div>
           <div class="g-pri">P${g.priority} Priority</div>
           <div class="g-name">${g.name}</div>
           <div class="g-patch">${resolvePatchLabel(g.id)}</div>
           ${dlHTML}${resetHTML}
+          <div class="g-sum" id="gsum-${g.id}">${cardSummary(g)}</div>
         </div>
         <div class="g-right">
           <div>
@@ -822,6 +924,7 @@ function togT(gid, type, idx, el, ev) {
   const cur = getv(s, gid, type, idx);
   setv(gid, type, idx, !cur);
   el.classList.toggle('done');
+  el.setAttribute('aria-checked', String(!cur));
 
   const g   = GAMES.find(x => x.id === gid);
   const a   = ld();
@@ -848,8 +951,8 @@ function togT(gid, type, idx, el, ev) {
     if (pct >= 100) card.classList.add('done-card');
     else            card.classList.remove('done-card');
   }
-  updateGlobals(); buildUrgency(); buildTodayPanel(); checkAllAchievements(); updateLT();
-  updateCurrencyEarned(gid);
+  updateGlobals(); buildTodayPanel(); checkAllAchievements(); updateLT();
+  updateCurrencyEarned(gid); refreshCardSummary(gid);
 
   if (document.getElementById('sessionOverlay')?.classList.contains('open')) {
     refreshSessionList();
@@ -890,12 +993,14 @@ function togCy(k, el) {
   else          setCy(k, nowCleared);
 
   el.classList.toggle('cleared');
+  el.setAttribute('aria-checked', String(nowCleared));
 
   if (nowCleared) recordCycleClear(k);
 
-  buildUrgency(); buildTodayPanel(); updateGlobals(); checkAllAchievements(); updateLT();
+  buildTodayPanel(); updateGlobals(); checkAllAchievements(); updateLT();
   const g = GAMES.find(g => g.endgameModes.some(m => m.cycleKey === k));
   if (g) {
+    refreshCardSummary(g.id);
     const cnt  = g.endgameModes.filter(m => getCy(m.cycleKey)).length;
     const cnt2 = document.getElementById('cyc-' + g.id);
     if (cnt2) cnt2.textContent = cnt + '/' + g.endgameModes.length;
@@ -924,6 +1029,7 @@ function togCol(gid) {
   prefs[gid]  = now;
   try { localStorage.setItem(COLK, JSON.stringify(prefs)); } catch {}
   card?.classList.toggle('collapsed', now);
+  card?.querySelector('.game-top')?.setAttribute('aria-expanded', String(!now));
 }
 
 function updateGlobals() {
@@ -1148,6 +1254,7 @@ function sessionToggleDaily(gid, idx, el) {
     const g = GAMES.find(x => x.id === gid);
     if (g && trows[idx]) {
       trows[idx].classList.add('done');
+      trows[idx].setAttribute('aria-checked', 'true');
       const chk = trows[idx].querySelector('.tcheck');
       if (chk) { chk.style.borderColor = 'var(--accent)'; chk.style.background = 'var(--accent)'; }
     }
@@ -1163,8 +1270,8 @@ function sessionToggleDaily(gid, idx, el) {
     else            card.classList.remove('done-card');
   }
 
-  updateGlobals(); buildUrgency(); buildTodayPanel(); checkAllAchievements(); updateLT();
-  updateCurrencyEarned(gid);
+  updateGlobals(); buildTodayPanel(); checkAllAchievements(); updateLT();
+  updateCurrencyEarned(gid); refreshCardSummary(gid);
 
   setTimeout(() => { renderSessionList(); updateSessionCountdowns(); }, 350);
 }
@@ -1187,12 +1294,13 @@ function sessionToggleCycle(cycleKey, btn) {
   recordCycleClear(cycleKey);
   const g = GAMES.find(g => g.endgameModes.some(m => m.cycleKey === cycleKey));
 
-  buildUrgency(); buildTodayPanel(); updateGlobals(); checkAllAchievements(); updateLT();
+  buildTodayPanel(); updateGlobals(); checkAllAchievements(); updateLT();
   if (g) {
+    refreshCardSummary(g.id);
     const cycleRows = document.querySelectorAll(`#card-${g.id} .cycle-row`);
     cycleRows.forEach(row => {
       const onclick = row.getAttribute('onclick') || '';
-      if (onclick.includes(cycleKey)) row.classList.add('cleared');
+      if (onclick.includes(cycleKey)) { row.classList.add('cleared'); row.setAttribute('aria-checked', 'true'); }
     });
     const cnt  = g.endgameModes.filter(m => getCy(m.cycleKey)).length;
     const cnt2 = document.getElementById('cyc-' + g.id);
@@ -2234,9 +2342,10 @@ function buildCalendar() {
 // ── VIEW SWITCHING ──
 function switchView(id, el) {
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => { t.classList.remove('active'); t.setAttribute('aria-selected', 'false'); });
   document.getElementById('view-' + id)?.classList.add('active');
-  if (el) el.classList.add('active');
+  if (el) { el.classList.add('active'); el.setAttribute('aria-selected', 'true'); }
+  window.scrollTo({ top: 0, behavior: 'instant' });   // v5.21: a tab switch starts at the top of the new view
   if (id === 'calendar') {
     wsSelectedDay = -1;
     buildCalendar();
@@ -2339,9 +2448,23 @@ function render() {
   try { document.getElementById('notesMain').value = localStorage.getItem(NK)  || ''; } catch {}
   try { document.getElementById('calNotes').value  = localStorage.getItem(CNK) || ''; } catch {}
   try { document.getElementById('quickNote').value = localStorage.getItem(QNK) || ''; } catch {}
-  buildTodayPanel(); buildUrgency(); updateGlobals();
+  buildTodayPanel(); buildEvents(); updateGlobals();
   renderAchievements(); checkFreshness();
 }
+
+// ── KEYBOARD (v5.21, audit D8) ──
+// Rows, card headers and tabs are divs with roles; Enter/Space activates
+// them like the buttons they behave as.
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter' && e.key !== ' ') return;
+  const t = e.target;
+  if (!t || !t.getAttribute) return;
+  const role = t.getAttribute('role');
+  if ((role === 'checkbox' || role === 'button' || role === 'tab') && t.tagName !== 'BUTTON') {
+    e.preventDefault();
+    t.click();
+  }
+});
 
 // ── INIT ──
 // v5.15 migration: remove stranded Notion sync outbox entries (idempotent)

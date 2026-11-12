@@ -3,7 +3,7 @@
 A personal operations dashboard and mission tracker for four priority gacha games. Built as a vanilla-JS Progressive Web App — no frameworks, no build step, no bundler. Install to your home screen for a full-screen native app experience.
 
 **Live:** `https://emeraldsimu-arch.github.io/czn-ops-theory/`
-**Version:** v5.20
+**Version:** v5.21
 **Last updated:** July 2026
 
 Single user ("the Operator"), single deployment. Not accepting contributions.
@@ -47,7 +47,7 @@ HoYoverse titles are tracked on **America** servers. Reset times live in `data/c
 | Hosting | GitHub Pages | Deploy-from-branch on `main` |
 | Storage | localStorage | Device-only. No server-side copy. |
 | PWA | Chrome Android / iOS Safari | Install to home screen |
-| Fonts | Google Fonts | Orbitron, Syne, JetBrains Mono |
+| Fonts | Self-hosted (`fonts/`, SIL OFL) | Orbitron, Syne, JetBrains Mono — precached for offline (v5.21) |
 
 No backend, no database, no API keys, no analytics.
 

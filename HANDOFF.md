@@ -2,7 +2,7 @@
 
 **For:** Fresh Claude instance taking over development
 **Date:** November 12, 2026
-**Current version:** v5.20
+**Current version:** v5.21
 **Live:** https://emeraldsimu-arch.github.io/czn-ops-theory/
 
 ---
@@ -89,6 +89,7 @@ czn-ops-theory/
 ├── .nojekyll — required; disables Jekyll processing
 ├── README.md — project documentation
 ├── HANDOFF.md — this document
+├── fonts/ — self-hosted latin woff2 (Orbitron, Syne, JetBrains Mono) + OFL licences (v5.21)
 ├── tools/
 │ ├── check.js — release checker: node tools/check.js (v5.20)
 │ └── test.js — logic tests: node tools/test.js (v5.20)
@@ -111,7 +112,8 @@ czn-ops-theory/
 
 - **Color palette:** dark tactical dashboard, `#08090c` background
 - **Game accents:** CZN `#e84faa`, WW `#2de8a0`, HSR `#9d7ff5`, ZZZ `#4ab8f0`
-- **Font stack:** Orbitron (headers/labels), Syne (body), JetBrains Mono (data/numbers)
+- **Font stack:** Orbitron (headers/labels), Syne (body), JetBrains Mono (data/numbers) — self-hosted in `fonts/` since v5.21, never a third-party `@import`
+- **Phone ergonomics (v5.21, approved 2026-11-12):** type floor 11px for data/body, 10px for Orbitron and uppercase labels; task and cycle rows ≥ 44px tall; navigation is a fixed bottom tab bar ≤700px (Track / Plan / Pulls / Record), top tabs with full names above that. Keep these floors when adding UI.
 - **Background:** subtle dot grid with radial gradients, plus a canvas starfield with planet and periodic asteroid pass
 - **Per-game card motifs:** CZN diagonal crosshatch, WW wave repeat, HSR starfield + rail, ZZZ hollow-zone scan lines
 - **Achievement tiers:** SIGNAL=blue, OPERATIVE=green, VANGUARD=purple, PHANTOM=gold
@@ -425,11 +427,15 @@ This methodology is non-negotiable.
 
 Resolved in v5.20: notes autosave debounced; `confirmReset()` now clears every game's week and today's dailies (Operator decision); unused `ws()` / `ds()` / `zzzEndgameDone()` / `getDailyCompletionCount()` removed.
 
-**Open audit items (Nov 2026 system audit doc, v5.21+):** events have no visible panel (only critical events within 3 days surface in Today); task rows ~26px tall and 70 rules at 7–9px text on a 380px phone; top scrolling nav; tracker repeats cycle alerts; starfield redraws at full frame rate and ignores reduced-motion; minimal ARIA. All approved by the Operator on 2026-11-12 — see §21 roadmap.
+Resolved in v5.21: events panel, tap targets, type floor, bottom tab bar, alerts folded into Today, collapsed-card summary, starfield throttle + reduced-motion, self-hosted fonts, ARIA roles, `WEEK_PLAN` colour variables.
+
+**Still open:** `--text-dim` (#42506a) on the dark panels is low-contrast for secondary lines (reset notes, patch labels). Raising it is a palette change — needs Operator approval. Syne renders old-style figures ("1o" for 10) in body text; numbers that matter are in JetBrains Mono.
 
 ---
 
 ## 21. VERSION HISTORY — RECENT
+
+**v5.21 — Field-ready** (Nov 2026 audit D1–D9). Events & Deadlines panel above the game cards (critical pinned, tap for details). 44px task/cycle rows, 18px checks. Type floor 11px / 10px (86 rules raised). Fixed bottom tab bar on phones. Endgame Alerts folded into the Today panel as "Next resets"; collapsed cards show a summary line. Starfield at ~15fps with a cached planet layer, still frame under reduced-motion. Fonts self-hosted + precached. ARIA roles/states + keyboard activation. `WEEK_PLAN` uses colour variables. Favicon declared. SW cache `nexus-v521-static`.
 
 **v5.20 — Integrity** (Nov 2026 audit F1–F9). Local-calendar date parsing everywhere (dates had read a day early in US Central). Cycle clears bound to the cycle instance (`ends`) — no more resurrection after a data update; expired rows lock as "Awaiting data". Idempotent lifetime counters (`_ltSeenTasks`, `_cyCounted`). CZN Sortie on the CZN week. "Reset this week" clears all games' weeks + today's dailies. In-memory store cache + 70-day pruning. Collapse prefs in `nexus_v53_col` (backed up). Expired events trip the stale banner. SW network-first for `data/`. New `tools/check.js` + `tools/test.js`. One-time `migrateV520()` keeps everything the Operator currently sees.
 
