@@ -1,8 +1,8 @@
 # NEXUS — Complete Project Handoff Document
 
 **For:** Fresh Claude instance taking over development
-**Date:** July 20, 2026
-**Current version:** v5.16
+**Date:** November 12, 2026
+**Current version:** v5.20
 **Live:** https://emeraldsimu-arch.github.io/czn-ops-theory/
 
 ---
@@ -88,6 +88,10 @@ czn-ops-theory/
 ├── manifest.json — PWA install config
 ├── .nojekyll — required; disables Jekyll processing
 ├── README.md — project documentation
+├── HANDOFF.md — this document
+├── tools/
+│ ├── check.js — release checker: node tools/check.js (v5.20)
+│ └── test.js — logic tests: node tools/test.js (v5.20)
 ├── icons/
 │ ├── icon-192.png
 │ └── icon-512.png
@@ -183,7 +187,20 @@ Achievement `check()` calls run inside a `try {} catch {}` that swallows errors 
 | `unlockedAch` | `checkAllAchievements()` | Debounced tap |
 | `unlockedDispatches` | `checkAllAchievements()` ONLY | Debounced tap — **week-scoped**, see below |
 | `totalDispatchesEarned` | `checkAllAchievements()` ONLY | Debounced tap |
-| `_ltSeenWeek` / `_ltSeenCount` | `updateLT()` ONLY | Internal delta bookkeeping |
+| `_ltSeenTasks` | `updateLT()` ONLY | Per-task "already counted" latch (v5.20) |
+| `_cyCounted` | `recordCycleClear()` ONLY | Per-cycle-instance "already counted" latch (v5.20) |
+| Card collapse prefs (`nexus_v53_col`) | `togCol()` ONLY | User tap |
+
+**v5.20 change — idempotent lifetime counters (audit F3).** `totalTasksCompleted`
+used a week-level delta (`count now − count last seen`), so unticking and
+re-ticking a task counted it twice. `totalCycleClears` was incremented on
+every clear, so off/on toggling inflated it. Both writers are unchanged, but
+each now latches: `updateLT()` counts a task once per bucket via
+`_ltSeenTasks` (ids `<bucketKey>|<gid>|d|w|<idx>`, pruned to the current
+buckets), and `recordCycleClear()` counts a cycle once per *cycle identity*
+via `_cyCounted` (see §10). `_ltSeenWeek` / `_ltSeenCount` are deleted on
+first run. `migrateV520()` seeds `_cyCounted` once for cycles already cleared
+at upgrade — a one-time migration write, like the v5.18 dispatch migration.
 
 **v5.18 change:** `unlockedDispatches` changed shape from a flat `{ id: true }`
 map to `{ week: '<wk() key>', ids: { id: true } }`. DISPATCHES are weekly
@@ -219,6 +236,8 @@ Weekly tasks use `wk(gameId)` — Monday-anchored for HSR/WW/ZZZ, Sunday 18:00 U
 
 Reset times live in `config.js → resetTimes`.
 
+**Config dates are calendar days, not instants (v5.20, audit F1).** `new Date('2026-11-13')` is UTC midnight — 18:00 on Nov 12 in US Central — so every countdown, "Ends" label, freshness check and cycle expiry used to run a day early for the Operator. All config dates (`ends`, `unlocks`, `lastVerified`, stored day strings) must go through `parseDay()` / `daysUntil()` / `localISO()` at the top of `app.js`. Never construct a `Date` from a bare ISO day string anywhere else. `tools/test.js` pins US Central and covers this.
+
 ---
 
 ## 10. CYCLE CLEAR ARCHITECTURE
@@ -228,6 +247,12 @@ Cycle clears are NOT weekly tasks. They have their own reset schedules.
 **Four cycle types:** `date` | `patch` | `weekly` | `permanent`
 
 Cycle clear rows render **ABOVE** weekly tasks in every game card.
+
+**Cycle identity (v5.20, audit F2/F4).** A clear belongs to one cycle *instance*, identified by `cycleIdentity(k)`: the cycle's current `ends` string for `date` / `patch` / `permanent` cycles, or the owning game's `wk(gid)` for `weekly` cycles (so CZN's Sortie follows the Sunday 18:00 UTC week). `CY_<key>` stores `{ cleared, ends | weekKey, date }`; `getCy()` is true only while the stored `ends` equals the configured `ends`. Before v5.20 it compared dates only, so a clear from the previous cycle **resurrected** when config rolled `ends` forward.
+
+Consequences for patch day: rolling a cycle's `ends` forward un-clears it — that is correct. Never edit an old date back to "restore" a clear.
+
+**Expired rows.** When a dated cycle's `ends` has passed but config hasn't been rolled, `isCycleExpired()` is true: the row shows **Awaiting data**, is locked, and is excluded from the Today panel, Endgame Alerts, the planner and Session Mode (`isCycleOpen()`). There is no valid instance to clear until config names the new one.
 
 Current end dates live in `config.js → cycles` and are verified on patch day. Do not duplicate them here — a hardcoded date list in this document is exactly how `games.js` rotted for two months.
 
@@ -251,7 +276,7 @@ localStorage is the only copy of the NEXUS RECORD. A cleared cache, a phone rese
 
 The NEXUS RECORD panel has Export and Import buttons:
 
-- **Export** serialises all eleven `nexus_v53*` keys into `nexus-backup-YYYY-MM-DD.json` with a format version, app tag, app version, and ISO timestamp. Writes `nexus_v53_bak` so the panel can show backup age.
+- **Export** serialises all twelve `nexus_v53*` keys (v5.20 added `nexus_v53_col`, card collapse prefs) into `nexus-backup-YYYY-MM-DD.json` with a format version, app tag, app version, and ISO timestamp. Writes `nexus_v53_bak` so the panel can show backup age.
 - **Import** validates shape (`_app === 'NEXUS'`, format not newer than current), summarises the backup's contents, confirms **twice**, then **replaces** all tracked keys and reloads. Merge semantics were considered and rejected — reconciling two divergent lifetime-stat sets is guesswork.
 - **The PIN (`nexus_pin`) is deliberately excluded** so the backup file carries no credential. A restore re-enters the PIN at the gate.
 - The age label turns amber at 14 days, red if never backed up.
@@ -314,7 +339,14 @@ Never commit directly to `main` during a multi-file update.
 
 **Versioning:** `CONFIG.version` in `data/config.js` is the single source of truth. The header logo renders from it automatically (v5.15) and needs no manual edit. Bump `CACHE_NAME` in `sw.js` whenever any file outside `data/` changes. Update the README version line.
 
-After deploy, hard-refresh twice — stale-while-revalidate serves the old service worker on the first load.
+**Before merging**, both must exit clean:
+
+```
+node tools/test.js    # logic tests — dates, cycles, counters, storage, migration (pins US Central)
+node tools/check.js   # versions agree everywhere, nothing expired, keys/ids/filenames/precache valid
+```
+
+**Service worker (v5.20):** app-shell files are stale-while-revalidate (fast start); `data/*.js` is **network-first** with cache fallback, so a patch-day `config.js` fix is live on the first open after deploy. Shell changes still need one extra reload to pick up the new SW.
 
 ---
 
@@ -330,6 +362,8 @@ Never trust training data alone for cycle end dates, event deadlines, pull/pity 
 
 `config.js` carries a `Next review:` date in its header. If today is past it, flag that a patch-day update is due before doing anything else.
 
+**Scheduled data check.** A scheduled task, "NEXUS config.js date check", runs Mondays and Thursdays at 7:14am US Central. If no row has expired and Next review hasn't passed, it sends a one-line "data current" message. Otherwise it runs the full verification pass below, runs `tools/check.js`, and opens a PR from a `data-YYYY-MM-DD` branch for the Operator to review and merge. It never merges and never touches files outside `data/config.js`. It exists because the two data passes before it were 10 days and ~2 months overdue.
+
 ---
 
 ## 17. HOW TO DO A PATCH UPDATE
@@ -337,10 +371,11 @@ Never trust training data alone for cycle end dates, event deadlines, pull/pity 
 1. Web search per game: `[game] current version patch [month year] endgame schedule game8`
 2. Fetch Game8 and Icy Veins / Prydwen for each game separately — combined queries return shallow results
 3. Create a branch
-4. Update **only** `data/config.js`: `lastVerified`, `patches[]` (including `label`), `cycles{}`, `events[]`
+4. Update **only** `data/config.js`: `lastVerified`, `patches[]` (including `label`), `cycles{}`, `events[]` — remove expired events (they trip the stale banner since v5.20)
 5. Keep the annotated changelog header format — note what changed, what was confirmed unchanged, what's estimated vs verified, and the next review date
-6. Dual pass
-7. Merge → one deploy → verify
+6. `node tools/check.js` must pass
+7. Dual pass
+8. Merge → one deploy → verify
 
 If a patch update requires touching any file other than `config.js`, the design is wrong. Stop and discuss.
 
@@ -380,18 +415,31 @@ This methodology is non-negotiable.
 
 ## 20. KNOWN MINOR ISSUES (non-breaking, flagged)
 
-- `getv()` daily path ignores the passed `s` state parameter (vestigial, no functional impact)
-- Google Fonts loaded via `@import` in CSS — minor render-blocking. Self-hosting the woff2 files would also make them precacheable for true offline typography.
-- `updateLT()` fires on every keystroke in the notes textareas via `saveNotes()` / `saveQuickNote()`, running a full `totalDone()` sweep each time. Debouncing that path is a cheap win.
+- `getv()` still takes an unused `s` parameter (kept for call-site compatibility).
+- Google Fonts loaded via `@import` in CSS — render-blocking, and not cached offline (the SW skips cross-origin). Scheduled for v5.21 (self-host + precache).
 - `cyclesDone()` in the week-rollover modal reads *current* cycle state, not the archived week's — the "Cycle Clears" figure there is misleading.
-- `confirmReset()` deletes only the weekly key, leaving daily keys checked. May be intentional; unconfirmed.
-- Unused functions: `ws()`, `ds()`, `zzzEndgameDone()`, `getDailyCompletionCount()`. Harmless.
 - Storage keys still carry the `v53` prefix. Renaming would orphan all existing data — **leave them alone.**
-- `totalTasksCompleted` history before v5.16 was not recovered. The old `Math.max` value was kept as the opening balance and the counter grows correctly from there. One-time small over-count on the migration boot, by design.
+- `totalTasksCompleted` history before v5.16 was not recovered (opening balance kept). Untick/retick inflation before v5.20 was not unwound.
+- `ld()` returns one shared in-memory object (v5.20). Mutating it without `sv()` changes memory only — fine for adding an empty bucket, wrong for anything meant to persist. Always `sv()` what you change.
+- Day/week buckets older than 70 days are pruned at boot (`pruneStore()`, after `checkWeekRollover()`). Anything new that needs older history must change `PRUNE_DAYS` first.
+
+Resolved in v5.20: notes autosave debounced; `confirmReset()` now clears every game's week and today's dailies (Operator decision); unused `ws()` / `ds()` / `zzzEndgameDone()` / `getDailyCompletionCount()` removed.
+
+**Open audit items (Nov 2026 system audit doc, v5.21+):** events have no visible panel (only critical events within 3 days surface in Today); task rows ~26px tall and 70 rules at 7–9px text on a 380px phone; top scrolling nav; tracker repeats cycle alerts; starfield redraws at full frame rate and ignores reduced-motion; minimal ARIA. All approved by the Operator on 2026-11-12 — see §21 roadmap.
 
 ---
 
 ## 21. VERSION HISTORY — RECENT
+
+**v5.20 — Integrity** (Nov 2026 audit F1–F9). Local-calendar date parsing everywhere (dates had read a day early in US Central). Cycle clears bound to the cycle instance (`ends`) — no more resurrection after a data update; expired rows lock as "Awaiting data". Idempotent lifetime counters (`_ltSeenTasks`, `_cyCounted`). CZN Sortie on the CZN week. "Reset this week" clears all games' weeks + today's dailies. In-memory store cache + 70-day pruning. Collapse prefs in `nexus_v53_col` (backed up). Expired events trip the stale banner. SW network-first for `data/`. New `tools/check.js` + `tools/test.js`. One-time `migrateV520()` keeps everything the Operator currently sees.
+
+**Roadmap (approved 2026-11-12):** v5.21 Field-ready — Events section above the game cards (critical pinned), 44px rows, type floor 11px data / 10px Orbitron, bottom tab bar, Endgame Alerts folded into Today, collapsed-card summary line, throttled starfield + reduced-motion, self-hosted fonts, ARIA roles. v5.22 — `cadence` cycle type (`anchor` + `everyDays`) so fixed-rhythm modes roll themselves; NEXUS RECORD weekly history; backup nudge.
+
+**v5.19** — Freshness banner names every expired cycle, not just the first.
+
+**v5.18** — `getv()` resolves per-game keys (CZN weeklies had always read false); weekly-scoped dispatch latch; week-rollover % rewritten.
+
+**v5.17** — Import format guard; local-date backup filename.
 
 **v5.16** — Local Archive Backup (export/import). `totalTasksCompleted` converted from `Math.max` to a true delta accumulator. `recordCycleClear()` extracted as the single owner for cycle-clear fields. This document rewritten.
 
@@ -405,7 +453,7 @@ This methodology is non-negotiable.
 
 ## 22. STARTING INSTRUCTIONS FOR NEXT CHAT
 
-1. Ask the user to share this document and the current source files
+1. **The GitHub repo `emeraldsimu-arch/czn-ops-theory` (`main`) is the source of truth** (Operator decision, 2026-11-12). Clone it; don't rely on files pasted into chat or project knowledge, which go stale
 2. Check `config.js` header — if today is past `Next review:`, flag a patch update as the first priority
 3. Ask what they want to work on
 4. Create a branch before writing any code
@@ -416,4 +464,4 @@ The user is a good collaborator and will push back if something feels wrong. Tru
 
 ---
 
-*Updated July 20, 2026 — v5.16. Notion sync removed; localStorage is the only store. Hosted on GitHub Pages, deploy-from-branch on `main`.*
+*Updated November 12, 2026 — v5.20. GitHub `main` is the source of truth; localStorage is the only data store. Hosted on GitHub Pages, deploy-from-branch on `main`.*

@@ -1,7 +1,40 @@
 // ═══════════════════════════════════════════════════════════
-// NEXUS v5.19 — APP.JS
+// NEXUS v5.20 — APP.JS
 // All application logic and state management. localStorage only.
 // GitHub: emeraldsimu-arch/czn-ops-theory
+// Changes from v5.19 — "Integrity" release (Nov 2026 system audit, F1–F9):
+//   - F1 DATES READ ONE DAY EARLY WEST OF UTC. `new Date('2026-11-13')`
+//     parses as UTC midnight = 18:00 Nov 12 in US Central; setHours(0)
+//     then snapped it to Nov 12. Every countdown, "Ends" label, freshness
+//     check and getCy() expiry ran a day early for the Operator. All
+//     config dates now go through parseDay()/daysUntil(), which build a
+//     LOCAL calendar date. Clear dates and dismissals stamp localISO().
+//   - F2 OLD CYCLE CLEARS RESURRECTED AFTER A DATA UPDATE. getCy() only
+//     tested clearDate <= ends && today <= ends, so a clear from the
+//     previous cycle came back once config.js rolled `ends` forward. A
+//     clear now stores the `ends` it was made against and only counts while
+//     that still equals the configured `ends`. Legacy entries are stamped
+//     once by migrateV520() using the old rule, so nothing visibly changes
+//     on upgrade. Rows whose date has passed (config not yet rolled) are
+//     shown as "Awaiting data" and can't be cleared into a dead cycle.
+//   - F3 LIFETIME STATS INFLATED ON UNTICK/RETICK. recordCycleClear() now
+//     latches per cycle identity (lt._cyCounted); updateLT() counts each
+//     task once per bucket via lt._ltSeenTasks instead of a week-level
+//     delta. Same single owners as before (HANDOFF §8).
+//   - F4 CZN Sortie (weekly cycle) used the Monday week instead of CZN's
+//     Sunday 18:00 UTC week. Weekly cycles now key on wk(<owning game>).
+//   - F5 "Reset this week" now clears every game's current week AND today's
+//     dailies (Operator decision, Nov 12), not just the Monday bucket.
+//   - F7 ld() is cached in memory and invalidated on write / cross-tab
+//     storage events, so a tap no longer JSON.parses the whole store once
+//     per task row. Day/week buckets older than 70 days are pruned at init,
+//     after the week-rollover summary has read the week that ended.
+//   - F8 Card collapse preferences moved out of the week bucket (where they
+//     reset every Monday) into their own key COLK, included in backups.
+//   - F9 Expired event rows now trip the freshness banner like cycles do.
+//   - Notes autosave debounced (HANDOFF §20): updateLT() no longer runs a
+//     full sweep on every keystroke. Unused ws()/ds()/zzzEndgameDone()/
+//     getDailyCompletionCount() removed.
 // Changes from v5.18:
 //   - FRESHNESS BANNER UNDER-REPORTED EXPIRED CYCLES. checkFreshness()
 //     built the stale message from cf.warnings.find(...), i.e. the FIRST
@@ -76,6 +109,28 @@ const PITYK   = 'nexus_v53_pity';
 const GUARK   = 'nexus_v53_guar';
 const FDK     = 'nexus_v53_fd';
 const BAKK    = 'nexus_v53_bak';   // v5.16: last backup timestamp
+const COLK    = 'nexus_v53_col';   // v5.20: card collapse prefs { gid: bool }
+
+// ── LOCAL DATE HELPERS (v5.20) ──
+// Config dates are calendar days ('YYYY-MM-DD'), not instants. JS parses a
+// bare ISO date as UTC midnight, which in any timezone west of UTC is the
+// PREVIOUS local day — the F1 off-by-one. Everything that reads `ends`,
+// `unlocks`, `lastVerified` or a stored day string must go through these.
+function parseDay(s) {
+  if (typeof s !== 'string') return null;
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s);
+  return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null;
+}
+function todayLocal() { const d = new Date(); d.setHours(0, 0, 0, 0); return d; }
+function localISO(d = new Date()) {
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+// Whole days from today to a config date: 0 = today, -1 = yesterday,
+// null = not a date. Math.round absorbs DST's 23/25-hour days.
+function daysUntil(s) {
+  const end = parseDay(s);
+  return end ? Math.round((end - todayLocal()) / 86400000) : null;
+}
 
 // ── WEEK KEY ──
 function wk(gameId) {
@@ -117,27 +172,24 @@ function dk(gameId) {
 }
 
 // ── STATE HELPERS ──
-const ld  = () => { try { return JSON.parse(localStorage.getItem(SK) || '{}'); } catch { return {}; } };
-const sv  = a  => { try { localStorage.setItem(SK, JSON.stringify(a)); } catch {} };
-
-const ws  = (gameId) => {
-  const a = ld();
-  const w = wk(gameId);
-  if (!a[w]) a[w] = {};
-  return a[w];
+// v5.20 (F7): the main store is parsed once and held in memory. Every
+// ld() returns the SAME object; sv() writes it through and keeps it. A
+// caller that mutates without saving only touches memory (the existing
+// pattern of adding an empty bucket is harmless). The cache is dropped when
+// another tab writes the key, and applyImport() reloads the page anyway.
+let _store = null;
+const ld  = () => {
+  if (_store) return _store;
+  try { _store = JSON.parse(localStorage.getItem(SK) || '{}'); } catch { _store = {}; }
+  return _store;
 };
+const sv  = a  => { _store = a; try { localStorage.setItem(SK, JSON.stringify(a)); } catch {} };
+window.addEventListener('storage', e => { if (e.key === SK || e.key === null) _store = null; });
 
 const wsFull = () => {
   const a = ld(); const w = wk();
   if (!a[w]) a[w] = {};
   return a[w];
-};
-
-const ds = (gameId) => {
-  const a = ld();
-  const d = dk(gameId);
-  if (!a[d]) a[d] = {};
-  return a[d];
 };
 
 const getLT  = () => { try { return JSON.parse(localStorage.getItem(LTK) || '{}'); } catch { return {}; } };
@@ -177,27 +229,46 @@ function getv(s, gid, type, idx, all) {
   return !!(a[key]?.[gid]?.[type]?.[idx]);
 }
 
+// ── CYCLE IDENTITY (v5.20) ──
+// A cycle instance is identified by what config says about it NOW: its
+// `ends` date for date/patch/permanent cycles, or the owning game's week
+// key for weekly cycles (F4: CZN's week is Sunday-18:00-anchored). A clear
+// belongs to exactly one instance; when config rolls `ends` forward, the
+// old clear no longer matches and drops off (F2).
+function cycleGame(k) {
+  const g = GAMES.find(g => g.endgameModes.some(m => m.cycleKey === k));
+  return g ? g.id : undefined;
+}
+function cycleIdentity(k) {
+  const c = CONFIG.cycles[k];
+  if (!c) return null;
+  return c.type === 'weekly' ? wk(cycleGame(k)) : String(c.ends);
+}
+// A dated cycle whose end date has passed but config hasn't rolled yet:
+// the in-game cycle is over, so there is nothing valid to clear.
+function isCycleExpired(k) {
+  const c = CONFIG.cycles[k];
+  if (!c || c.type === 'weekly') return false;
+  const d = daysUntil(c.ends);
+  return d !== null && d < 0;
+}
+
 function setCy(k, val) {
-  const a = ld(); const cyKey = 'CY_' + k;
-  if (!a[cyKey]) a[cyKey] = {};
-  a[cyKey].cleared = val;
-  a[cyKey].date = new Date().toISOString().slice(0, 10);
+  const a = ld();
+  a['CY_' + k] = { cleared: val, ends: CONFIG.cycles[k]?.ends, date: localISO() };
   sv(a);
 }
 function getCy(k) {
-  const a = ld(); const cyKey = 'CY_' + k;
-  if (!a[cyKey]?.cleared) return false;
-  const cycleConf = CONFIG.cycles[k];
-  if (!cycleConf) return false;
-  if (cycleConf.type === 'weekly') return !!(a[cyKey]?.weekKey === wk());
-  const clearDate = new Date(a[cyKey].date);
-  const endsDate  = new Date(cycleConf.ends === 'weekly' ? '2099-01-01' : cycleConf.ends);
-  const today     = new Date();
-  return clearDate <= endsDate && today <= endsDate;
+  const e = ld()['CY_' + k];
+  if (!e?.cleared) return false;
+  const c = CONFIG.cycles[k];
+  if (!c) return false;
+  if (c.type === 'weekly') return e.weekKey === wk(cycleGame(k));
+  return e.ends === c.ends && !isCycleExpired(k);
 }
 function setCyWeekly(k, val) {
-  const a = ld(); const cyKey = 'CY_' + k;
-  a[cyKey] = { cleared: val, weekKey: wk(), date: new Date().toISOString().slice(0, 10) };
+  const a = ld();
+  a['CY_' + k] = { cleared: val, weekKey: wk(cycleGame(k)), date: localISO() };
   sv(a);
 }
 
@@ -237,9 +308,6 @@ function hsrEndgameDone() {
 }
 function wwEndgameDone() {
   return getCy('ww_toa') && getCy('ww_ww') && getCy('ww_em') && getCy('ww_tg');
-}
-function zzzEndgameDone() {
-  return getCy('zzz_shiyu') && getCy('zzz_deadly') && getCy('zzz_hollow');
 }
 
 function allMats(s) {
@@ -308,41 +376,54 @@ function checkDispatch(d, s, lt) {
 function daysUntilCycleEnds(cycleKey) {
   const c = CONFIG.cycles[cycleKey];
   if (!c || c.ends === 'weekly') return null;
-  const today = new Date(); today.setHours(0,0,0,0);
-  const end   = new Date(c.ends); end.setHours(0,0,0,0);
-  return Math.ceil((end - today) / (1000*60*60*24));
+  return daysUntil(c.ends);
 }
 function isCycleUnlocked(cycleKey) {
   const c = CONFIG.cycles[cycleKey];
   if (!c?.unlocks) return true;
-  return new Date() >= new Date(c.unlocks);
+  const d = daysUntil(c.unlocks);
+  return d === null || d <= 0;
+}
+// Open = unlocked AND not past its end date. Planners, alerts and session
+// mode only offer open cycles; an expired row is the freshness banner's job.
+function isCycleOpen(cycleKey) {
+  return isCycleUnlocked(cycleKey) && !isCycleExpired(cycleKey);
 }
 function cycleResetLabel(cycleKey) {
   const d = daysUntilCycleEnds(cycleKey);
   if (d === null) return 'Weekly';
-  if (d < 0)     return 'Reset';
+  if (d < 0)     return 'Awaiting data';
   if (d === 0)   return 'Resets TODAY';
   return d + 'd left';
 }
 
 // ── CYCLE FRESHNESS CHECK ──
 function checkCycleFreshness() {
-  const today = new Date(); today.setHours(0,0,0,0);
   const warnings = [];
   let soonest = null;
 
   if (CONFIG.lastVerified) {
-    const verified = new Date(CONFIG.lastVerified); verified.setHours(0,0,0,0);
-    const daysSince = Math.floor((today - verified) / (1000*60*60*24));
+    const since = daysUntil(CONFIG.lastVerified);
+    const daysSince = since === null ? 0 : -since;
     if (daysSince > 14) {
       warnings.push(`Data last verified ${daysSince}d ago — review recommended`);
     }
   }
 
+  // v5.20 (F9): an event row past its end date is as stale as a cycle row —
+  // it keeps showing (or silently stops showing) data that is no longer true.
+  CONFIG.events.forEach(e => {
+    const days = daysUntil(e.ends);
+    if (days !== null && days < 0) {
+      const g = GAMES.find(x => x.id === e.game);
+      warnings.push(`${g ? g.short : e.game.toUpperCase()} ${e.name} date expired — update config`);
+    }
+  });
+
   Object.entries(CONFIG.cycles).forEach(([key, cycle]) => {
     if (cycle.type !== 'date') return;
-    const end = new Date(cycle.ends); end.setHours(0,0,0,0);
-    const days = Math.ceil((end - today) / (1000*60*60*24));
+    const days = daysUntil(cycle.ends);
+    if (days === null) return;
 
     if (days < 0) {
       const game = GAMES.find(g => g.endgameModes.some(m => m.cycleKey === key));
@@ -367,35 +448,23 @@ function checkCycleFreshness() {
 
 // ── FRESHNESS DISMISS ──
 function dismissFreshBanner() {
-  const today = new Date(); today.setHours(0,0,0,0);
+  const today = todayLocal();
   let soonestDate = null;
 
-  Object.values(CONFIG.cycles).forEach(cycle => {
-    if (cycle.type !== 'date') return;
-    const end = new Date(cycle.ends); end.setHours(0,0,0,0);
-    const days = Math.ceil((end - today) / (1000*60*60*24));
-    if (days >= 0 && days <= 7) {
+  const consider = s => {
+    const days = daysUntil(s);
+    if (days !== null && days >= 0 && days <= 7) {
+      const end = parseDay(s);
       if (!soonestDate || end < soonestDate) soonestDate = end;
     }
-  });
-  CONFIG.patches.forEach(p => {
-    const end = new Date(p.ends); end.setHours(0,0,0,0);
-    const diff = Math.floor((end - today) / (1000*60*60*24));
-    if (diff >= 0 && diff <= 7) {
-      if (!soonestDate || end < soonestDate) soonestDate = end;
-    }
-  });
+  };
+  Object.values(CONFIG.cycles).forEach(cycle => { if (cycle.type === 'date') consider(cycle.ends); });
+  CONFIG.patches.forEach(p => consider(p.ends));
 
-  let dismissedUntil;
-  if (soonestDate) {
-    const reAlert = new Date(soonestDate);
-    reAlert.setUTCDate(reAlert.getUTCDate() - 1);
-    dismissedUntil = reAlert.toISOString().slice(0, 10);
-  } else {
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    dismissedUntil = tomorrow.toISOString().slice(0, 10);
-  }
+  // Re-alert the day before the soonest reset, else tomorrow. Local dates.
+  const reAlert = soonestDate ? new Date(soonestDate) : new Date(today);
+  reAlert.setDate(reAlert.getDate() + (soonestDate ? -1 : 1));
+  const dismissedUntil = localISO(reAlert);
 
   try { localStorage.setItem(FDK, JSON.stringify({ dismissedUntil })); } catch {}
   document.getElementById('freshBanner').className = 'fresh-banner';
@@ -407,13 +476,12 @@ function dismissFreshBanner() {
 
 // ── FRESHNESS CHECK ──
 function checkFreshness() {
-  const today = new Date(); today.setHours(0,0,0,0);
   let stale = false, warn = false, msg = '';
   let soonestDiff = Infinity; let soonestPatch = null;
 
   CONFIG.patches.forEach(p => {
-    const end  = new Date(p.ends); end.setHours(0,0,0,0);
-    const diff = Math.floor((end - today) / (1000*60*60*24));
+    const diff = daysUntil(p.ends);
+    if (diff === null) return;
     if (diff < 0) { stale = true; msg = `${p.game.toUpperCase()} v${p.version} data may be outdated`; }
     else if (diff <= 7 && diff < soonestDiff) { soonestDiff = diff; soonestPatch = p; }
   });
@@ -455,8 +523,8 @@ function checkFreshness() {
     try {
       const fd = JSON.parse(localStorage.getItem(FDK) || '{}');
       if (fd.dismissedUntil) {
-        const until = new Date(fd.dismissedUntil); until.setHours(0,0,0,0);
-        dismissed = today < until;
+        const left = daysUntil(fd.dismissedUntil);
+        dismissed = left !== null && left > 0;
       }
     } catch {}
 
@@ -488,7 +556,7 @@ function getSessionLoadLabel() {
 
   GAMES.forEach(g => {
     g.endgameModes.forEach(m => {
-      if (getCy(m.cycleKey) || !isCycleUnlocked(m.cycleKey)) return;
+      if (getCy(m.cycleKey) || !isCycleOpen(m.cycleKey)) return;
       const d = daysUntilCycleEnds(m.cycleKey);
       if (d !== null && d <= 2) totalMins += CYCLE_MINS;
     });
@@ -499,7 +567,7 @@ function getSessionLoadLabel() {
     }
 
     g.endgameModes.forEach(m => {
-      if (getCy(m.cycleKey) || !isCycleUnlocked(m.cycleKey)) return;
+      if (getCy(m.cycleKey) || !isCycleOpen(m.cycleKey)) return;
       const d = daysUntilCycleEnds(m.cycleKey);
       const isUrgent = d !== null && d <= 2;
       if (isUrgent) return;
@@ -523,15 +591,15 @@ function buildTodayPanel() {
   const today = new Date();
   const items = [];
   CONFIG.events.filter(e => e.tier === 'critical').forEach(e => {
-    const diff = Math.floor((new Date(e.ends) - today) / (1000*60*60*24));
-    if (diff >= 0 && diff <= 3) {
+    const diff = daysUntil(e.ends);
+    if (diff !== null && diff >= 0 && diff <= 3) {
       const g = GAMES.find(x => x.id === e.game);
       items.push({ p:1, game: g?.short || e.game.toUpperCase(), text: e.name, meta: `⚠ ${diff}d left`, color: `var(--${e.game})` });
     }
   });
   GAMES.forEach(g => {
     g.endgameModes.forEach(m => {
-      if (!getCy(m.cycleKey) && isCycleUnlocked(m.cycleKey)) {
+      if (!getCy(m.cycleKey) && isCycleOpen(m.cycleKey)) {
         const d = daysUntilCycleEnds(m.cycleKey);
         if (d !== null && d <= 1) {
           items.push({ p:2, game: g.short, text: m.name, meta: d <= 0 ? 'Resets TODAY' : 'Resets TOMORROW', color: `var(--${g.id})` });
@@ -592,7 +660,7 @@ function buildUrgency() {
   const allItems = [];
   GAMES.forEach(g => {
     g.endgameModes.forEach(m => {
-      if (!getCy(m.cycleKey) && isCycleUnlocked(m.cycleKey)) {
+      if (!getCy(m.cycleKey) && isCycleOpen(m.cycleKey)) {
         const d = daysUntilCycleEnds(m.cycleKey);
         if (isFirstLoad && d !== null && d > urgencyThreshold) return;
         allItems.push({ game: g, mode: m, days: d });
@@ -639,9 +707,9 @@ function resolvePatchLabel(gid) {
 function resolveDeadline(gid) {
   const p = CONFIG.patches.find(x => x.game === gid);
   if (!p) return { text: null, soon: false, days: null };
-  const end = new Date(p.ends); end.setHours(0,0,0,0);
-  const today = new Date(); today.setHours(0,0,0,0);
-  const days = Math.ceil((end - today) / (1000*60*60*24));
+  const end  = parseDay(p.ends);
+  const days = daysUntil(p.ends);
+  if (!end) return { text: null, soon: false, days: null };
   return {
     text: end.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }),
     soon: days >= 0 && days <= 7,
@@ -652,9 +720,9 @@ function resolveDeadline(gid) {
 // ── GAME CARDS ──
 function buildCard(g, s) {
   const a   = `var(${g.accent})`, d = `var(${g.dim})`;
-  const all = ld(); const w = wk(g.id);
-  const hasColPref = all[w]?._col?.[g.id] !== undefined;
-  const collapsed  = hasColPref ? !!all[w]._col[g.id] : g.priority !== 1;
+  const all = ld();
+  const colPrefs   = getColPrefs();
+  const collapsed  = colPrefs[g.id] !== undefined ? !!colPrefs[g.id] : g.priority !== 1;
   let dd = 0, wd = 0;
   g.daily.forEach((_,i)  => { if (getv(s,g.id,'daily',i,all))  dd++; });
   g.weekly.forEach((_,i) => { if (getv(s,g.id,'weekly',i,all)) wd++; });
@@ -668,7 +736,7 @@ function buildCard(g, s) {
   const resetHTML = g.resetNote ? `<div class="g-reset-note">${g.resetNote}</div>` : '';
   const doneBadge = isComplete  ? `<span class="g-done-badge">✓ COMPLETE</span>` : '';
   const patch     = CONFIG.patches.find(p => p.game === g.id);
-  const staleHTML = patch && new Date(patch.ends) < new Date()
+  const staleHTML = patch && (daysUntil(patch.ends) ?? 0) < 0
     ? `<div class="card-fresh-warn show">⚠ Patch data may be outdated</div>`
     : `<div class="card-fresh-warn"></div>`;
 
@@ -682,7 +750,7 @@ function buildCard(g, s) {
 
   const weeklyHTML = g.weekly.map((t, i) => {
     const ok = getv(s, g.id, 'weekly', i, all);
-    const isLocked = t.unlocks && new Date() < new Date(t.unlocks);
+    const isLocked = t.unlocks && (daysUntil(t.unlocks) ?? 0) > 0;
     return `<div class="trow${ok?' done':''}${isLocked?' locked':''}" onclick="${isLocked?'':` togT('${g.id}','weekly',${i},this,event)`}">
       <div class="tcheck"></div><span class="ttext">${t.t}</span>
       ${t.deadline ? `<span class="tdl">↯ ${t.deadline}</span>` : ''}
@@ -693,15 +761,17 @@ function buildCard(g, s) {
   const cdone = g.endgameModes.filter(m => getCy(m.cycleKey)).length;
   const cycleHTML = g.endgameModes.map(m => {
     const cl       = getCy(m.cycleKey);
-    const unlocked = isCycleUnlocked(m.cycleKey);
+    // v5.20: an expired row (config not rolled yet) is locked — clearing it
+    // would stamp a clear against a cycle that has already ended in-game.
+    const unlocked = isCycleOpen(m.cycleKey);
     const lbl      = cycleResetLabel(m.cycleKey);
     const daysLeft = daysUntilCycleEnds(m.cycleKey);
-    const urgent   = !cl && daysLeft !== null && daysLeft <= 2;
+    const urgent   = !cl && daysLeft !== null && daysLeft >= 0 && daysLeft <= 2;
     return `<div class="cycle-row${cl?' cleared':''}${!unlocked?' locked':''}" onclick="${unlocked?`togCy('${m.cycleKey}',this)`:''}">
       <div class="ccheck"></div>
       <span class="ctext">${m.name}</span>
       <span class="cbadge" style="${urgent?'color:var(--danger)':''}">${lbl}</span>
-      ${!unlocked ? `<span class="cunlock">Unlocks ${CONFIG.cycles[m.cycleKey]?.unlocks}</span>` : ''}
+      ${!isCycleUnlocked(m.cycleKey) ? `<span class="cunlock">Unlocks ${CONFIG.cycles[m.cycleKey]?.unlocks}</span>` : ''}
     </div>`;
   }).join('');
 
@@ -791,8 +861,15 @@ function togT(gid, type, idx, el, ev) {
 // Previously both togCy() and sessionToggleCycle() incremented these
 // directly — two writers on fields HANDOFF §8 declares single-owner.
 // Behaviour is unchanged; the write now lives in one place. See §8.
+// v5.20 (F3): idempotent. A cycle instance (see cycleIdentity) is counted
+// at most once, however many times it is unticked and re-ticked. The latch
+// lt._cyCounted is owned here too — it is the other half of the same fact.
 function recordCycleClear(cycleKey) {
   const lt = getLT();
+  const id = cycleIdentity(cycleKey);
+  if (!lt._cyCounted) lt._cyCounted = {};
+  if (id !== null && lt._cyCounted[cycleKey] === id) return;
+  lt._cyCounted[cycleKey] = id;
   const g  = GAMES.find(g => g.endgameModes.some(m => m.cycleKey === cycleKey));
   if (g) {
     const gameKey = g.id + 'LifetimeCycleClears';
@@ -803,6 +880,7 @@ function recordCycleClear(cycleKey) {
 }
 
 function togCy(k, el) {
+  if (isCycleExpired(k)) return;   // v5.20: see buildCard — row is locked
   const cyConf   = CONFIG.cycles[k];
   const isWeekly = cyConf?.type === 'weekly';
   const wasCleared = getCy(k);
@@ -834,11 +912,18 @@ function togCy(k, el) {
   }
 }
 
+// v5.20 (F8): collapse prefs live in their own key, not the week bucket
+// (where they silently reset every Monday). Absent = default (P1 open).
+function getColPrefs() {
+  try { return JSON.parse(localStorage.getItem(COLK) || '{}'); } catch { return {}; }
+}
 function togCol(gid) {
-  const a = ld(); const w = wk(gid);
-  if (!a[w]) a[w] = {}; if (!a[w]._col) a[w]._col = {};
-  a[w]._col[gid] = !a[w]._col[gid]; sv(a);
-  document.getElementById('card-' + gid)?.classList.toggle('collapsed');
+  const card  = document.getElementById('card-' + gid);
+  const prefs = getColPrefs();
+  const now   = card ? !card.classList.contains('collapsed') : !prefs[gid];
+  prefs[gid]  = now;
+  try { localStorage.setItem(COLK, JSON.stringify(prefs)); } catch {}
+  card?.classList.toggle('collapsed', now);
 }
 
 function updateGlobals() {
@@ -849,8 +934,16 @@ function updateGlobals() {
 }
 
 function confirmReset() {
-  if (confirm("Reset all this week's checks? Lifetime stats, achievements, and cycle clears carry over.")) {
-    const a = ld(); delete a[wk()]; sv(a); render();
+  // v5.20 (F5): every game's current week (CZN's is a separate Sunday-
+  // anchored bucket) AND each game's current daily bucket. Operator
+  // decision, Nov 12 2026. Lifetime counters don't re-count re-ticks
+  // (see updateLT), so a reset can't be used to inflate them.
+  if (confirm("Reset all of this week's checks — every game's weekly tasks and today's dailies? Lifetime stats, achievements, and cycle clears carry over.")) {
+    const a = ld();
+    const keys = new Set([wk()]);
+    GAMES.forEach(g => { keys.add(wk(g.id)); keys.add(dk(g.id)); });
+    keys.forEach(k => { delete a[k]; });
+    sv(a); render();
   }
 }
 
@@ -887,7 +980,7 @@ function buildSessionList() {
 
   GAMES.forEach(g => {
     g.endgameModes.forEach(m => {
-      if (getCy(m.cycleKey) || !isCycleUnlocked(m.cycleKey)) return;
+      if (getCy(m.cycleKey) || !isCycleOpen(m.cycleKey)) return;
       const d = daysUntilCycleEnds(m.cycleKey);
       if (d !== null && d <= 2) {
         items.push({
@@ -927,7 +1020,7 @@ function buildSessionList() {
     }
 
     g.endgameModes.forEach(m => {
-      if (getCy(m.cycleKey) || !isCycleUnlocked(m.cycleKey)) return;
+      if (getCy(m.cycleKey) || !isCycleOpen(m.cycleKey)) return;
       const d = daysUntilCycleEnds(m.cycleKey);
       const isUrgent = d !== null && d <= 2;
       if (isUrgent) return;
@@ -1083,6 +1176,7 @@ function sessionToggleCycle(cycleKey, btn) {
   const item = btn.closest('.sm-item');
   if (item) item.classList.add('sm-bloom');
 
+  if (isCycleExpired(cycleKey)) { btn.classList.remove('sm-completing'); return; }
   const cyConf   = CONFIG.cycles[cycleKey];
   const isWeekly = cyConf?.type === 'weekly';
 
@@ -1378,17 +1472,35 @@ function updateLT() {
 
   const weekKey = wk();
 
-  // Delta accumulator for lifetime task count
-  if (lt._ltSeenWeek !== weekKey) {
-    lt._ltSeenWeek  = weekKey;
-    lt._ltSeenCount = 0;
+  // v5.20 (F3): per-task latch replaces the week-level delta accumulator.
+  // The old `count now − count last seen` re-counted any task that was
+  // unticked and ticked again. Each ticked task is identified by the bucket
+  // it lives in (its game's current dk/wk) + game + type + index, and counted
+  // the first time it is seen ticked. Ids whose bucket is no longer current
+  // are dropped, so the set stays small (≤ one week of tasks).
+  const a = ld();
+  const ticked = [];
+  const liveKeys = new Set();
+  GAMES.forEach(g => {
+    const dK = dk(g.id), wK = wk(g.id);
+    liveKeys.add(dK); liveKeys.add(wK);
+    g.daily.forEach((_, i)  => { if (a[dK]?.[g.id]?.daily?.[i])  ticked.push(`${dK}|${g.id}|d|${i}`); });
+    g.weekly.forEach((_, i) => { if (a[wK]?.[g.id]?.weekly?.[i]) ticked.push(`${wK}|${g.id}|w|${i}`); });
+  });
+  let seen = lt._ltSeenTasks;
+  if (!seen) {
+    // Upgrade from v5.19: whatever is ticked right now was already counted by
+    // the old accumulator. Seed without counting. Owned here (HANDOFF §8).
+    seen = {};
+    ticked.forEach(id => { seen[id] = 1; });
+  } else {
+    ticked.forEach(id => {
+      if (!seen[id]) { seen[id] = 1; lt.totalTasksCompleted = (lt.totalTasksCompleted || 0) + 1; }
+    });
   }
-  const currentCount = totalDone(s);
-  const delta = Math.max(0, currentCount - (lt._ltSeenCount || 0));
-  if (delta > 0) {
-    lt.totalTasksCompleted = (lt.totalTasksCompleted || 0) + delta;
-  }
-  lt._ltSeenCount = currentCount;
+  Object.keys(seen).forEach(id => { if (!liveKeys.has(id.split('|')[0])) delete seen[id]; });
+  lt._ltSeenTasks = seen;
+  delete lt._ltSeenWeek; delete lt._ltSeenCount;
 
   lt.currentStreak = getStreak();
   lt.longestStreak = Math.max(lt.longestStreak || 0, getStreak());
@@ -1408,13 +1520,6 @@ function updateLT() {
   lt.hasNote = !!(localStorage.getItem(NK)?.length > 3 || localStorage.getItem(QNK)?.length > 3);
   saveLT(lt);
   markSavedLocally();
-}
-
-function getDailyCompletionCount(gid) {
-  const lt = getLT();
-  const weekKey = wk();
-  if (!lt.dailyCompletions || lt.dailyCompletions._week !== weekKey) return 0;
-  return lt.dailyCompletions[gid] || 0;
 }
 
 // ── LOCAL SAVE INDICATOR ──
@@ -1452,7 +1557,7 @@ function initSyncStatus() {
 // for divergent lifetime stats would be guesswork.
 
 const BACKUP_KEYS = [
-  SK, LTK, NK, CNK, QNK, STRK, PREVWK, CURK, PITYK, GUARK, FDK,
+  SK, LTK, NK, CNK, QNK, STRK, PREVWK, CURK, PITYK, GUARK, FDK, COLK,
 ];
 const BACKUP_FORMAT = 1;
 
@@ -1870,7 +1975,7 @@ function buildFeaturedDay() {
 
     g.endgameModes.forEach(m => {
       if (getCy(m.cycleKey)) return;
-      if (!isCycleUnlocked(m.cycleKey)) return;
+      if (!isCycleOpen(m.cycleKey)) return;
       const d = daysUntilCycleEnds(m.cycleKey);
       if (d !== null && d <= 2) {
         urgent.push({
@@ -2141,9 +2246,79 @@ function switchView(id, el) {
 }
 
 // ── NOTE SAVES ──
-const saveNotes     = () => { try { localStorage.setItem(NK,  document.getElementById('notesMain').value); updateLT(); } catch {} };
+// Text is written on every keystroke (nothing lost if the app is killed);
+// the lifetime sweep only needs to see the note exists, so it is debounced.
+let _noteLTTimer = null;
+const noteLT = () => { clearTimeout(_noteLTTimer); _noteLTTimer = setTimeout(updateLT, 800); };
+const saveNotes     = () => { try { localStorage.setItem(NK,  document.getElementById('notesMain').value); noteLT(); } catch {} };
 const saveCalNotes  = () => { try { localStorage.setItem(CNK, document.getElementById('calNotes').value); } catch {} };
-const saveQuickNote = () => { try { localStorage.setItem(QNK, document.getElementById('quickNote').value); updateLT(); } catch {} };
+const saveQuickNote = () => { try { localStorage.setItem(QNK, document.getElementById('quickNote').value); noteLT(); } catch {} };
+
+// ── v5.20 MIGRATION (idempotent, runs every boot) ──
+// 1. Legacy cycle clears (no `ends` stamp) are judged by the OLD rule one
+//    last time — cleared on/before the current end date and that date not
+//    passed — and stamped with the current `ends` if they pass, so nothing
+//    the Operator sees changes on upgrade. Weekly clears stored under the
+//    generic Monday key are moved to the owning game's week key (F4).
+// 2. Lifetime cycle-clear latch is seeded for every cycle that is cleared
+//    right now — those were already counted.
+// 3. Collapse prefs are lifted out of the current week bucket into COLK.
+function migrateV520() {
+  const a = ld();
+  let dirty = false;
+  Object.keys(CONFIG.cycles).forEach(k => {
+    const e = a['CY_' + k];
+    const c = CONFIG.cycles[k];
+    if (!e || !e.cleared) return;
+    if (c.type === 'weekly') {
+      const owner = wk(cycleGame(k));
+      if (e.weekKey && e.weekKey !== owner && e.weekKey === wk()) { e.weekKey = owner; dirty = true; }
+    } else if (!('ends' in e)) {
+      const clear = parseDay(e.date);
+      const end   = parseDay(c.ends);
+      const ok    = !!(clear && end && clear <= end && (daysUntil(c.ends) ?? -1) >= 0);
+      e.ends = ok ? c.ends : null;
+      dirty  = true;
+    }
+  });
+
+  const lt = getLT();
+  if (!lt._cyCounted) {
+    lt._cyCounted = {};
+    Object.keys(CONFIG.cycles).forEach(k => { if (getCy(k)) lt._cyCounted[k] = cycleIdentity(k); });
+    saveLT(lt);
+  }
+
+  let colRaw = null;
+  try { colRaw = localStorage.getItem(COLK); } catch {}
+  if (colRaw === null) {
+    const prefs = {};
+    GAMES.forEach(g => {
+      const v = a[wk(g.id)]?._col?.[g.id];
+      if (v !== undefined) prefs[g.id] = !!v;
+    });
+    try { localStorage.setItem(COLK, JSON.stringify(prefs)); } catch {}
+  }
+  if (dirty) sv(a);
+}
+
+// ── STORE PRUNING (v5.20, F7) ──
+// Day and week buckets older than 70 days are never read again: the week
+// rollover only looks at the week that just ended, and nothing else scans
+// history. Must run AFTER checkWeekRollover(). CY_ and other keys untouched.
+const PRUNE_DAYS = 70;
+function pruneStore() {
+  const a = ld();
+  const cut = new Date(); cut.setDate(cut.getDate() - PRUNE_DAYS);
+  const cutoff = localISO(cut);
+  let n = 0;
+  Object.keys(a).forEach(k => {
+    const m = /^(?:D|WCZN|W)(\d{4}-\d{2}-\d{2})/.exec(k);
+    if (m && m[1] < cutoff) { delete a[k]; n++; }
+  });
+  if (n) sv(a);
+  return n;
+}
 
 // ── MAIN RENDER ──
 function render() {
@@ -2171,8 +2346,10 @@ function render() {
 // ── INIT ──
 // v5.15 migration: remove stranded Notion sync outbox entries (idempotent)
 try { localStorage.removeItem('nexus_v53_ob'); } catch {}
+migrateV520();
 updateStreak();
-checkWeekRollover();
+checkWeekRollover();   // must precede pruneStore() and checkAllAchievements()
+pruneStore();
 render();
 updateLT();
 initSyncStatus();

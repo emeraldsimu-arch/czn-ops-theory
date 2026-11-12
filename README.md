@@ -3,7 +3,7 @@
 A personal operations dashboard and mission tracker for four priority gacha games. Built as a vanilla-JS Progressive Web App — no frameworks, no build step, no bundler. Install to your home screen for a full-screen native app experience.
 
 **Live:** `https://emeraldsimu-arch.github.io/czn-ops-theory/`
-**Version:** v5.19
+**Version:** v5.20
 **Last updated:** July 2026
 
 Single user ("the Operator"), single deployment. Not accepting contributions.
@@ -129,7 +129,10 @@ When game data goes stale:
 1. Verify new dates against two sources minimum (official patch notes, Game8, Icy Veins, Sportskeeda, Fandom wikis)
 2. Update `data/config.js` **only** — `lastVerified`, patch end dates, cycle end dates, events
 3. Update the annotated change-log header at the top of `config.js`: what changed, what was confirmed unchanged, and the next review date
-4. Branch → commit → PR → merge
+4. Run `node tools/check.js` — it fails on any expired row, missing cycle key or duplicate event id
+5. Branch → commit → PR → merge
+
+A scheduled task ("NEXUS config.js date check", Mon + Thu 7:14 CT) runs this pass automatically and opens the PR; a human still reviews and merges.
 
 `config.js` carries a `Next review:` date. If today is past it, a patch pass is due before any other work.
 
@@ -137,12 +140,20 @@ When game data goes stale:
 
 ### Release checklist
 
-Every release must update all four of these together, or the app reports a version it isn't running:
+Every release must update these together, or the app reports a version it isn't running:
 
-- [ ] `data/config.js` → `CONFIG.version`
-- [ ] `data/config.js` → header title comment
-- [ ] `sw.js` → `CACHE_NAME` (only if a file outside `data/` changed)
+- [ ] `data/config.js` → `CONFIG.version` and header title comment
+- [ ] `app.js` → header title + change notes
+- [ ] `sw.js` → `CACHE_NAME` + header (only if a file outside `data/` changed)
 - [ ] `README.md` → **Version:** line
+- [ ] `HANDOFF.md` → **Current version:** line + §21 history
+
+Then run both tools — both must exit clean before merging:
+
+```
+node tools/test.js    # logic tests: dates, cycles, lifetime counters, storage (pins US Central time)
+node tools/check.js   # release check: versions agree, nothing expired, keys + filenames + precache valid
+```
 
 The logo version in `index.html` renders from `CONFIG.version` at runtime — it is not hardcoded and needs no edit.
 
@@ -150,6 +161,7 @@ The logo version in `index.html` renders from `CONFIG.version` at runtime — it
 
 - **One owner per state field.** The state-ownership table in `HANDOFF.md` §8 is authoritative. Never add a second writer to a lifetime-stat field; that is exactly what caused the v5.5 double-count bugs.
 - **If you add a new storage key, add it to `BACKUP_KEYS`** or it will not survive a restore.
+- **Config dates are calendar days.** Read them only through `parseDay()` / `daysUntil()` in `app.js` — never `new Date('YYYY-MM-DD')`, which is UTC midnight and lands on the previous day in US time.
 - The design system in `HANDOFF.md` §4 does not change without explicit approval.
 
 See `HANDOFF.md` for the complete architecture reference.

@@ -1,7 +1,15 @@
 // ═══════════════════════════════════════════════════════════
-// NEXUS v5.19 — SERVICE WORKER
-// Stale-while-revalidate. Bump CACHE_NAME whenever any file
-// outside data/ changes.
+// NEXUS v5.20 — SERVICE WORKER
+// Stale-while-revalidate for the app shell; NETWORK-FIRST for data/
+// (v5.20). Bump CACHE_NAME whenever any file outside data/ changes.
+// Changes from v5.19:
+//   - CACHE_NAME: nexus-v519-static → nexus-v520-static (app.js changed)
+//   - data/*.js is now network-first with cache fallback (audit F6).
+//     Stale-while-revalidate served the PREVIOUS config.js on the first
+//     open after a patch-day deploy, so the stale banner survived the fix
+//     until a second reload. Online, data is always current; offline, the
+//     last good copy is served exactly as before. Shell files keep
+//     stale-while-revalidate (fast start, they change rarely).
 // Changes from v5.18:
 //   - CACHE_NAME: nexus-v518-static → nexus-v519-static (app.js changed)
 //   - No logic changes.
@@ -20,7 +28,7 @@
 //   - fetch: opaque/error responses no longer poison the cache
 // ═══════════════════════════════════════════════════════════
 
-const CACHE_NAME = 'nexus-v519-static';
+const CACHE_NAME = 'nexus-v520-static';
 
 const ASSETS = [
   '/czn-ops-theory/',
@@ -70,6 +78,22 @@ self.addEventListener('fetch', e => {
   // through — never cached, never intercepted.
   if (req.method !== 'GET') return;
   if (new URL(req.url).origin !== self.location.origin) return;
+
+  // v5.20: data files — network first, fall back to cache when offline.
+  if (new URL(req.url).pathname.startsWith('/czn-ops-theory/data/')) {
+    e.respondWith(
+      fetch(req).then(res => {
+        if (res && res.status === 200 && res.type === 'basic') {
+          const clone = res.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(req, clone));
+          return res;
+        }
+        // A server error mid-deploy must not beat the last good copy.
+        return caches.match(req).then(cached => cached || res);
+      }).catch(() => caches.match(req))
+    );
+    return;
+  }
 
   e.respondWith(
     caches.match(req).then(cached => {

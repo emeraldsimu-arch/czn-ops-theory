@@ -1,4 +1,4 @@
-// NEXUS v5.19 — CONFIG
+// NEXUS v5.20 — CONFIG
 // ── THIS IS THE ONLY FILE THAT NEEDS UPDATING ON PATCH DAY ──
 // Last verified: 2026-11-12
 // Next review: 2026-11-13 (zzz_shiyu resets). Then 2026-11-16 (hsr_as),
@@ -8,6 +8,18 @@
 //   Rossweisse + Blazebell + Carnival close, FSO/BoH roll), 2026-12-07
 //   (ww_toa), 2026-12-14 (hsr_moc), ~2026-12-21/22 (WW 4.0 + HSR 4.8,
 //   both ESTIMATES — re-verify), ~2026-12-23 (CZN S5 end, DERIVED).
+//
+// v5.20 code release (Integrity, audit F1–F9): CONFIG.version 5.19 -> 5.20.
+//   No date changed in this file for the release. Two things the app now
+//   does differently with these values:
+//   - every `ends` / `unlocks` / `lastVerified` is read as a LOCAL calendar
+//     day (it used to be UTC midnight = the day before in US Central);
+//   - a cycle clear belongs to the exact `ends` value it was made against,
+//     so rolling `ends` forward correctly un-clears the row. Never "fix" a
+//     cycle by editing its old date back — just set the new one.
+//   - an event row past its `ends` now trips the stale banner, same as a
+//     cycle: remove expired events on each pass (the scheduled check does).
+//   Run `node tools/check.js` before merging any config change.
 //
 // Changes from 2026-09-04 verify — DATA-ONLY pass, no version bump.
 //   ** This pass was ~2 MONTHS overdue: Next review had been 2026-09-09.
@@ -88,7 +100,7 @@
 // ═══════════════════════════════════════════════════════════
 
 const CONFIG = {
-  version: '5.19',
+  version: '5.20',
   lastVerified: '2026-11-12',
 
   resetTimes: {
