@@ -7,7 +7,16 @@
        (.record-backup and children). No existing rules modified.
    ═══════════════════════════════════════════════════════════ */
 
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Syne:wght@400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap');
+/* v5.21 (audit D7): fonts are self-hosted and precached by sw.js — no
+   render-blocking third-party @import, and the real typefaces load offline.
+   Same three families as before (SIL OFL 1.1, licences in fonts/), as
+   latin-subset variable woff2 from Fontsource. */
+@font-face { font-family: 'Orbitron'; font-style: normal; font-display: swap; font-weight: 400 900;
+  src: url('fonts/orbitron-latin-wght-normal.woff2') format('woff2-variations'), url('fonts/orbitron-latin-wght-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Syne'; font-style: normal; font-display: swap; font-weight: 400 800;
+  src: url('fonts/syne-latin-wght-normal.woff2') format('woff2-variations'), url('fonts/syne-latin-wght-normal.woff2') format('woff2'); }
+@font-face { font-family: 'JetBrains Mono'; font-style: normal; font-display: swap; font-weight: 100 800;
+  src: url('fonts/jetbrains-mono-latin-wght-normal.woff2') format('woff2-variations'), url('fonts/jetbrains-mono-latin-wght-normal.woff2') format('woff2'); }
 
 /* ── TOKENS ── */
 :root {
@@ -152,13 +161,13 @@ body::after {
   animation: textGlowAmber 4s ease-in-out infinite;
 }
 .logo-ver {
-  font-size: 10px; letter-spacing: 2px;
+  font-size: 11px; letter-spacing: 2px;
   color: rgba(255,150,30,0.4); margin-left: 8px;
   font-weight: 400; vertical-align: middle;
 }
 
 .hdr-right { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
-.week-lbl { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-dim); }
+.week-lbl { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-dim); }
 
 .gbar-wrap { display: flex; align-items: center; gap: 8px; }
 .gbar { width: 90px; height: 2px; background: rgba(255,255,255,0.07); border-radius: 1px; overflow: hidden; }
@@ -171,7 +180,7 @@ body::after {
 .gbar-pct { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: rgba(255,150,30,0.8); min-width: 32px; font-weight: 500; }
 
 .btn-xs {
-  font-family: 'Syne', sans-serif; font-size: 9px; font-weight: 600;
+  font-family: 'Syne', sans-serif; font-size: 10px; font-weight: 600;
   letter-spacing: 1.5px; text-transform: uppercase;
   color: var(--text-dim); background: none;
   border: 1px solid var(--border2); padding: 5px 10px;
@@ -205,7 +214,7 @@ body::after {
 }
 .nav::-webkit-scrollbar { display: none; }
 .nav-tab {
-  font-family: 'Orbitron', monospace; font-size: 9px; letter-spacing: 2px;
+  font-family: 'Orbitron', monospace; font-size: 10px; letter-spacing: 2px;
   text-transform: uppercase; color: var(--text-dim);
   padding: 12px 18px; cursor: pointer;
   border-bottom: 2px solid transparent; transition: all .2s;
@@ -224,7 +233,7 @@ body::after {
 }
 .dispatch-badge {
   display: inline-block; font-family: 'JetBrains Mono', monospace;
-  font-size: 8px; background: var(--czn); color: #000;
+  font-size: 11px; background: var(--czn); color: #000;
   padding: 1px 5px; border-radius: 2px; margin-left: 6px;
   font-weight: 700; vertical-align: middle;
 }
@@ -246,7 +255,7 @@ body::after {
 }
 .today-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
 .today-title { font-family: 'Orbitron', monospace; font-size: 10px; letter-spacing: 2px; color: var(--text-bright); text-transform: uppercase; }
-.today-date { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-dim); }
+.today-date { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-dim); }
 .today-items { display: flex; flex-direction: column; gap: 6px; }
 .today-item {
   display: flex; align-items: center; gap: 10px;
@@ -257,10 +266,10 @@ body::after {
 .today-item.p1 { border-left-color: var(--danger); }
 .today-item.p2 { border-left-color: var(--warn); }
 .today-item.p3 { border-left-color: var(--text-dim); }
-.today-rank { font-family: 'Orbitron', monospace; font-size: 8px; letter-spacing: 1px; color: var(--text-dim); min-width: 50px; }
-.today-game-tag { font-family: 'Orbitron', monospace; font-size: 8px; letter-spacing: 1px; padding: 2px 6px; border-radius: 2px; flex-shrink: 0; }
+.today-rank { font-family: 'Orbitron', monospace; font-size: 10px; letter-spacing: 1px; color: var(--text-dim); min-width: 50px; }
+.today-game-tag { font-family: 'Orbitron', monospace; font-size: 10px; letter-spacing: 1px; padding: 2px 6px; border-radius: 2px; flex-shrink: 0; }
 .today-text { font-size: 12px; font-weight: 600; color: var(--text-bright); flex: 1; }
-.today-meta { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--text-dim); white-space: nowrap; }
+.today-meta { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-dim); white-space: nowrap; }
 .today-empty { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--ok); padding: 8px 0; text-align: center; }
 
 /* ── DISPATCH BAR ── */
@@ -274,7 +283,7 @@ body::after {
   content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
   background: var(--amber); opacity: 0.4;
 }
-.dispatch-label { font-family: 'Orbitron', monospace; font-size: 8px; letter-spacing: 2px; color: var(--text-dim); text-transform: uppercase; white-space: nowrap; }
+.dispatch-label { font-family: 'Orbitron', monospace; font-size: 10px; letter-spacing: 2px; color: var(--text-dim); text-transform: uppercase; white-space: nowrap; }
 .dispatch-track { flex: 1; height: 3px; background: rgba(255,255,255,0.06); border-radius: 1px; overflow: hidden; }
 .dispatch-fill {
   height: 100%; border-radius: 1px;
@@ -290,7 +299,7 @@ body::after {
 /* ── URGENCY ── */
 .urg-section { margin-bottom: 12px; }
 .sec-hdr {
-  font-family: 'Orbitron', monospace; font-size: 8px; letter-spacing: 2.5px;
+  font-family: 'Orbitron', monospace; font-size: 10px; letter-spacing: 2.5px;
   color: var(--text-dim); text-transform: uppercase;
   margin-bottom: 8px; display: flex; align-items: center; gap: 8px;
 }
@@ -338,7 +347,7 @@ body::after {
 .urg-card.warn  .udot { background: var(--warn); animation: breatheAmber 3s ease-in-out infinite; box-shadow: none; }
 .urg-card.clear .udot { background: var(--ok); animation: none; }
 .ubody { flex: 1; min-width: 0; }
-.ugame { font-family: 'Orbitron', monospace; font-size: 7px; letter-spacing: 1.5px; color: var(--danger); text-transform: uppercase; margin-bottom: 1px; }
+.ugame { font-family: 'Orbitron', monospace; font-size: 10px; letter-spacing: 1.5px; color: var(--danger); text-transform: uppercase; margin-bottom: 1px; }
 .urg-card.warn  .ugame { color: var(--warn); }
 .urg-card.clear .ugame { color: var(--ok); }
 
@@ -346,7 +355,7 @@ body::after {
    but mobile override below switches to wrapping at ≤480px */
 .umode { font-size: 11px; font-weight: 600; color: var(--text-bright); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-.udays { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--danger); white-space: nowrap; flex-shrink: 0; }
+.udays { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--danger); white-space: nowrap; flex-shrink: 0; }
 .urg-card.warn  .udays { color: var(--warn); }
 .urg-card.clear .udays { color: var(--ok); }
 
@@ -524,7 +533,7 @@ body::after {
 
 .game-top { padding: 12px 14px 10px 17px; position: relative; overflow: hidden; cursor: pointer; user-select: none; }
 .gtop-row { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 6px; }
-.g-pri { font-family: 'Orbitron', monospace; font-size: 7px; letter-spacing: 2px; color: var(--accent); text-transform: uppercase; margin-bottom: 2px; opacity: 0.7; }
+.g-pri { font-family: 'Orbitron', monospace; font-size: 10px; letter-spacing: 2px; color: var(--accent); text-transform: uppercase; margin-bottom: 2px; opacity: 0.7; }
 .g-name { font-family: 'Orbitron', monospace; font-weight: 700; font-size: 11px; color: var(--text-bright); letter-spacing: .5px; line-height: 1.2; }
 .game-card[data-game="czn"] .g-name { animation: breatheCZN-text 5s ease-in-out infinite; animation-delay: 0s; }
 .game-card[data-game="ww"]  .g-name { animation: breatheWW-text  5s ease-in-out infinite; animation-delay: 1.6s; }
@@ -534,10 +543,10 @@ body::after {
 @keyframes breatheWW-text  { 0%,100%{text-shadow:none;} 50%{text-shadow:0 0 10px rgba(45,232,160,0.5);} }
 @keyframes breatheHSR-text { 0%,100%{text-shadow:none;} 50%{text-shadow:0 0 10px rgba(157,127,245,0.5);} }
 @keyframes breatheZZZ-text { 0%,100%{text-shadow:none;} 50%{text-shadow:0 0 10px rgba(74,184,240,0.5);} }
-.g-patch { font-family: 'JetBrains Mono', monospace; font-size: 8px; color: var(--text-dim); margin-top: 2px; }
-.g-dl { font-family: 'JetBrains Mono', monospace; font-size: 8px; margin-top: 1px; }
+.g-patch { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+.g-dl { font-family: 'JetBrains Mono', monospace; font-size: 11px; margin-top: 1px; }
 .g-dl.soon { color: var(--warn); } .g-dl.ok { color: var(--text-dim); }
-.g-reset-note { font-family: 'JetBrains Mono', monospace; font-size: 7px; color: var(--text-dim); margin-top: 1px; opacity: .5; }
+.g-reset-note { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-dim); margin-top: 1px; opacity: .5; }
 .g-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; margin-left: 8px; background: transparent; }
 .g-pct-num {
   font-family: 'Orbitron', monospace; font-size: 22px; font-weight: 700;
@@ -548,8 +557,8 @@ body::after {
 .game-card[data-game="ww"]  .g-pct-num { animation: breatheWW  5s ease-in-out infinite; animation-delay: 1.6s; }
 .game-card[data-game="hsr"] .g-pct-num { animation: breatheHSR 5s ease-in-out infinite; animation-delay: 3.2s; }
 .game-card[data-game="zzz"] .g-pct-num { animation: breatheZZZ 5s ease-in-out infinite; animation-delay: 4.4s; }
-.g-pct-sub { font-family: 'JetBrains Mono', monospace; font-size: 7px; color: var(--text-dim); margin-top: 1px; text-align: right; }
-.g-done-badge { font-family: 'Orbitron', monospace; font-size: 7px; background: rgba(74,222,128,.12); color: var(--ok); padding: 2px 5px; border-radius: 2px; letter-spacing: .5px; display: block; margin-top: 3px; text-align: center; }
+.g-pct-sub { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-dim); margin-top: 1px; text-align: right; }
+.g-done-badge { font-family: 'Orbitron', monospace; font-size: 10px; background: rgba(74,222,128,.12); color: var(--ok); padding: 2px 5px; border-radius: 2px; letter-spacing: .5px; display: block; margin-top: 3px; text-align: center; }
 .carr { font-size: 12px; color: var(--text-dim); transition: transform .25s; line-height: 1; flex-shrink: 0; }
 .game-card.collapsed .carr { transform: rotate(-90deg); }
 
@@ -563,14 +572,14 @@ body::after {
 .game-card[data-game="hsr"] .pfill { animation: breatheHSR 5s ease-in-out infinite; animation-delay: 3.2s; }
 .game-card[data-game="zzz"] .pfill { animation: breatheZZZ 5s ease-in-out infinite; animation-delay: 4.4s; }
 
-.card-fresh-warn { display: none; font-family: 'JetBrains Mono', monospace; font-size: 8px; color: var(--warn); padding: 3px 17px; background: rgba(255,179,71,.05); border-top: 1px solid rgba(255,179,71,.12); }
+.card-fresh-warn { display: none; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--warn); padding: 3px 17px; background: rgba(255,179,71,.05); border-top: 1px solid rgba(255,179,71,.12); }
 .card-fresh-warn.show { display: block; }
 
 /* ── TASK BODY ── */
 .task-body { padding: 9px 13px 12px 17px; }
-.tsec { font-family: 'Orbitron', monospace; font-size: 7px; letter-spacing: 2px; color: var(--text-dim); text-transform: uppercase; margin: 9px 0 4px; display: flex; align-items: center; justify-content: space-between; }
+.tsec { font-family: 'Orbitron', monospace; font-size: 10px; letter-spacing: 2px; color: var(--text-dim); text-transform: uppercase; margin: 9px 0 4px; display: flex; align-items: center; justify-content: space-between; }
 .tsec:first-child { margin-top: 0; }
-.tcnt { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--accent); }
+.tcnt { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent); }
 .tlist { display: flex; flex-direction: column; gap: 2px; }
 .trow {
   display: flex; align-items: center; gap: 8px; padding: 5px 8px;
@@ -587,8 +596,8 @@ body::after {
 .trow.done .tcheck { border-color: var(--accent); background: var(--accent); }
 .trow.done .tcheck::after { content: ''; width: 5px; height: 3px; border-left: 1.5px solid #000; border-bottom: 1.5px solid #000; transform: rotate(-45deg) translateY(-1px); display: block; }
 .ttext { font-size: 12px; font-weight: 500; color: var(--text); flex: 1; line-height: 1.3; }
-.tdl { font-family: 'JetBrains Mono', monospace; font-size: 8px; color: var(--warn); white-space: nowrap; flex-shrink: 0; }
-.ttag { font-family: 'JetBrains Mono', monospace; font-size: 7px; letter-spacing: .5px; padding: 1px 4px; border-radius: 2px; text-transform: uppercase; flex-shrink: 0; }
+.tdl { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--warn); white-space: nowrap; flex-shrink: 0; }
+.ttag { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: .5px; padding: 1px 4px; border-radius: 2px; text-transform: uppercase; flex-shrink: 0; }
 .tag-res     { background: rgba(74,184,240,.08);  color: #4ab8f0; }
 .tag-mat     { background: rgba(45,232,160,.08);  color: #2de8a0; }
 .tag-event   { background: rgba(255,179,71,.08);  color: #ffb347; }
@@ -616,8 +625,8 @@ body::after {
 .cycle-row.cleared .ccheck { border-color: var(--ok); background: var(--ok); }
 .cycle-row.cleared .ccheck::after { content: ''; width: 5px; height: 3px; border-left: 1.5px solid #000; border-bottom: 1.5px solid #000; transform: rotate(-45deg) translateY(-1px); display: block; }
 .ctext { font-size: 11px; font-weight: 600; color: var(--text-mid); flex: 1; }
-.cbadge { font-family: 'JetBrains Mono', monospace; font-size: 7px; padding: 1px 5px; border-radius: 2px; background: rgba(232,79,170,.07); color: var(--czn); letter-spacing: .3px; white-space: nowrap; }
-.cunlock { font-family: 'JetBrains Mono', monospace; font-size: 7px; color: var(--text-dim); white-space: nowrap; }
+.cbadge { font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 1px 5px; border-radius: 2px; background: rgba(232,79,170,.07); color: var(--czn); letter-spacing: .3px; white-space: nowrap; }
+.cunlock { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-dim); white-space: nowrap; }
 
 /* ── NOTES ── */
 .notes-card { background: var(--panel); border: 1px solid var(--border); border-radius: 6px; padding: 12px 14px; margin-bottom: 12px; }
@@ -646,12 +655,12 @@ body::after {
   clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%);
 }
 .currency-terminal-label {
-  font-family: 'Orbitron', monospace; font-size: 9px;
+  font-family: 'Orbitron', monospace; font-size: 10px;
   letter-spacing: 2px; color: rgba(255,160,40,0.7);
   text-transform: uppercase;
 }
 .currency-terminal-sub {
-  font-family: 'JetBrains Mono', monospace; font-size: 9px;
+  font-family: 'JetBrains Mono', monospace; font-size: 11px;
   color: var(--text-dim); margin-left: auto;
 }
 
@@ -683,8 +692,8 @@ body::after {
 }
 
 .cc-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-.cc-game { font-family: 'Orbitron', monospace; font-size: 9px; letter-spacing: 1.5px; color: var(--accent); text-transform: uppercase; }
-.cc-currency { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--text-dim); }
+.cc-game { font-family: 'Orbitron', monospace; font-size: 10px; letter-spacing: 1.5px; color: var(--accent); text-transform: uppercase; }
+.cc-currency { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-dim); }
 .cc-total-row { display: flex; align-items: baseline; gap: 6px; margin-bottom: 8px; }
 .cc-input { font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 500; color: var(--text-bright); background: transparent; border: none; outline: none; width: 80px; }
 .cc-input:focus { color: var(--accent); }
@@ -698,8 +707,8 @@ body::after {
 /* Pity gauge — fuel gauge style with segment markers */
 .cc-pity-row { margin-bottom: 8px; }
 .cc-pity-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
-.cc-pity-label { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--text-dim); }
-.cc-pity-input { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-bright); background: transparent; border: none; outline: none; width: 30px; text-align: right; }
+.cc-pity-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-dim); }
+.cc-pity-input { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-bright); background: transparent; border: none; outline: none; width: 30px; text-align: right; }
 .cc-pity-input:focus { color: var(--accent); }
 
 /* Fuel gauge track with segment notches */
@@ -738,24 +747,24 @@ body::after {
   margin-top: 3px;
 }
 .cc-pity-lbl {
-  font-family: 'JetBrains Mono', monospace; font-size: 7px;
+  font-family: 'JetBrains Mono', monospace; font-size: 11px;
   color: var(--text-dim); opacity: 0.6;
 }
 .cc-pity-lbl.soft { color: var(--warn); opacity: 0.8; }
 .cc-pity-lbl.hard { color: var(--danger); opacity: 0.8; }
 
 .cc-earned { display: flex; align-items: center; gap: 6px; padding: 5px 8px; background: rgba(255,255,255,.02); border: 1px solid var(--border); border-radius: 3px; }
-.cc-earned-label { font-family: 'JetBrains Mono', monospace; font-size: 8px; color: var(--text-dim); flex: 1; }
-.cc-earned-val { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--ok); }
-.cc-note { font-family: 'JetBrains Mono', monospace; font-size: 8px; color: var(--text-dim); margin-top: 8px; line-height: 1.4; border-top: 1px solid var(--border); padding-top: 6px; }
+.cc-earned-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-dim); flex: 1; }
+.cc-earned-val { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ok); }
+.cc-note { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-dim); margin-top: 8px; line-height: 1.4; border-top: 1px solid var(--border); padding-top: 6px; }
 .cc-guar-row { padding: 5px 0; margin-bottom: 2px; }
-.cc-guar-label { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--text-dim); display: flex; align-items: center; gap: 6px; cursor: pointer; }
+.cc-guar-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-dim); display: flex; align-items: center; gap: 6px; cursor: pointer; }
 .cc-guar-label input[type="checkbox"] { accent-color: var(--accent); cursor: pointer; }
 .cc-proj { display: flex; align-items: center; gap: 8px; padding: 7px 10px; margin: 4px 0; background: rgba(255,255,255,.02); border: 1px solid var(--border); border-radius: 3px; }
 .cc-proj-ok { border-color: rgba(74,222,128,.18); background: rgba(74,222,128,.03); }
-.cc-proj-label { font-family: 'JetBrains Mono', monospace; font-size: 8px; color: var(--text-dim); min-width: 70px; flex-shrink: 0; }
+.cc-proj-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-dim); min-width: 70px; flex-shrink: 0; }
 .cc-proj-cost { font-family: 'Orbitron', monospace; font-size: 11px; font-weight: 700; color: var(--accent); flex: 1; }
-.cc-proj-weeks { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--text-mid); white-space: nowrap; }
+.cc-proj-weeks { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-mid); white-space: nowrap; }
 
 /* ── CALENDAR ── */
 .featured-day {
@@ -771,39 +780,39 @@ body::after {
 }
 .fd-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 14px; gap: 12px; }
 .fd-date-block { flex: 1; }
-.fd-day-label { font-family: 'Orbitron', monospace; font-size: 8px; letter-spacing: 3px; color: var(--amber); text-transform: uppercase; margin-bottom: 4px; }
+.fd-day-label { font-family: 'Orbitron', monospace; font-size: 10px; letter-spacing: 3px; color: var(--amber); text-transform: uppercase; margin-bottom: 4px; }
 .fd-date { font-family: 'Orbitron', monospace; font-size: 14px; font-weight: 700; color: var(--text-bright); letter-spacing: .5px; line-height: 1.2; }
 .fd-budget { text-align: right; flex-shrink: 0; }
 .fd-budget-val { font-family: 'Orbitron', monospace; font-size: 22px; font-weight: 700; line-height: 1; }
-.fd-budget-lbl { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 1px; text-transform: uppercase; margin-top: 3px; }
+.fd-budget-lbl { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; margin-top: 3px; }
 .fd-budget-lbl.heavy  { color: var(--danger); }
 .fd-budget-lbl.medium { color: var(--warn); }
 .fd-budget-lbl.light  { color: var(--ok); }
 .fd-divider { height: 1px; background: linear-gradient(90deg, transparent, var(--border2), transparent); margin: 0 0 12px; }
-.fd-section-label { font-family: 'Orbitron', monospace; font-size: 7px; letter-spacing: 2.5px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
-.fd-wait-count { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--text-dim); letter-spacing: 0; text-transform: none; background: var(--bg3); padding: 1px 6px; border-radius: 2px; }
+.fd-section-label { font-family: 'Orbitron', monospace; font-size: 10px; letter-spacing: 2.5px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+.fd-wait-count { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-dim); letter-spacing: 0; text-transform: none; background: var(--bg3); padding: 1px 6px; border-radius: 2px; }
 .fd-priority-list { display: flex; flex-direction: column; gap: 6px; }
 .fd-item { background: var(--bg3); border: 1px solid var(--border); border-radius: 0; padding: 10px 12px; transition: border-color .15s; border-left: 2px solid transparent; clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%); }
 .fd-item.fd-urgent { border-color: rgba(255,82,82,.2); background: rgba(255,82,82,.03); border-left-color: var(--danger); }
 .fd-item-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.fd-rank { font-family: 'Orbitron', monospace; font-size: 7px; letter-spacing: 1px; color: var(--text-dim); min-width: 55px; flex-shrink: 0; }
-.fd-game-tag { font-family: 'Orbitron', monospace; font-size: 8px; letter-spacing: 1px; padding: 2px 7px; border-radius: 2px; flex-shrink: 0; }
+.fd-rank { font-family: 'Orbitron', monospace; font-size: 10px; letter-spacing: 1px; color: var(--text-dim); min-width: 55px; flex-shrink: 0; }
+.fd-game-tag { font-family: 'Orbitron', monospace; font-size: 10px; letter-spacing: 1px; padding: 2px 7px; border-radius: 2px; flex-shrink: 0; }
 .fd-label { font-size: 13px; font-weight: 600; color: var(--text-bright); flex: 1; line-height: 1.3; }
-.fd-meta { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--text-dim); white-space: nowrap; flex-shrink: 0; }
+.fd-meta { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-dim); white-space: nowrap; flex-shrink: 0; }
 .fd-meta-urgent { color: var(--danger); }
 .fd-task-list { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 3px; }
 
 /* BUG 6 FIX (desktop base): monospace at 10px is fine on wider viewports —
    mobile override below switches to Syne for readability at 430px */
-.fd-task-item { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-mid); line-height: 1.4; padding-left: 4px; }
+.fd-task-item { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-mid); line-height: 1.4; padding-left: 4px; }
 
-.fd-clear { font-family: 'Orbitron', monospace; font-size: 9px; letter-spacing: 1px; color: var(--ok); text-align: center; padding: 16px 0; }
+.fd-clear { font-family: 'Orbitron', monospace; font-size: 10px; letter-spacing: 1px; color: var(--ok); text-align: center; padding: 16px 0; }
 .fd-wait-list { display: flex; flex-direction: column; gap: 5px; }
 .fd-wait-item { display: flex; align-items: center; gap: 10px; padding: 7px 10px; background: var(--bg3); border: 1px solid var(--border); border-radius: 3px; opacity: .6; }
-.fd-wait-game { font-family: 'Orbitron', monospace; font-size: 7px; letter-spacing: 1.5px; min-width: 32px; flex-shrink: 0; }
+.fd-wait-game { font-family: 'Orbitron', monospace; font-size: 10px; letter-spacing: 1.5px; min-width: 32px; flex-shrink: 0; }
 .fd-wait-label { font-size: 11px; font-weight: 500; color: var(--text-mid); flex: 1; }
-.fd-wait-meta { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--text-dim); white-space: nowrap; }
-.fd-wait-empty { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-dim); padding: 8px 0; text-align: center; }
+.fd-wait-meta { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-dim); white-space: nowrap; }
+.fd-wait-empty { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-dim); padding: 8px 0; text-align: center; }
 
 /* ── WEEK STRIP DAY EXPANSION ── */
 
@@ -823,7 +832,7 @@ body::after {
 
 /* Chevron indicator at bottom of each day cell */
 .ws-chevron {
-  font-size: 7px;
+  font-size: 11px;
   color: var(--text-dim);
   text-align: center;
   margin-top: 2px;
@@ -874,7 +883,7 @@ body::after {
 }
 .wsd-day-badge {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 8px;
+  font-size: 10px;
   letter-spacing: 1.5px;
   text-transform: uppercase;
 }
@@ -887,7 +896,7 @@ body::after {
 }
 .wsd-load {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: 1px;
   text-transform: uppercase;
   flex-shrink: 0;
@@ -937,26 +946,26 @@ body::after {
 .ws-day { background: var(--panel); border: 1px solid var(--border); border-radius: 0; padding: 10px 6px 8px; display: flex; flex-direction: column; gap: 5px; min-width: 0; transition: border-color .2s; }
 .ws-day.ws-today { border-color: rgba(232,79,170,.35); background: rgba(232,79,170,.03); }
 .ws-day.ws-past { opacity: .35; }
-.ws-name { font-family: 'Orbitron', monospace; font-size: 7px; letter-spacing: 1.5px; color: var(--text-dim); text-transform: uppercase; text-align: center; }
+.ws-name { font-family: 'Orbitron', monospace; font-size: 10px; letter-spacing: 1.5px; color: var(--text-dim); text-transform: uppercase; text-align: center; }
 .ws-today .ws-name { color: var(--czn); }
 .ws-bar-wrap { padding: 0 2px; }
 .ws-bar { height: 2px; background: rgba(255,255,255,0.06); border-radius: 1px; overflow: hidden; }
 .ws-fill { height: 100%; border-radius: 1px; transition: width .4s; }
 .ws-dots { display: flex; flex-wrap: wrap; gap: 2px; justify-content: center; min-height: 14px; }
 .ws-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
-.ws-focus { font-family: 'JetBrains Mono', monospace; font-size: 7px; color: var(--text-dim); line-height: 1.3; text-align: center; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.ws-focus { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-dim); line-height: 1.3; text-align: center; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 .ws-today .ws-focus { color: var(--text-mid); }
 
 /* ── BURN CHART ── */
 .burn-card { background: var(--panel); border: 1px solid var(--border); border-radius: 6px; padding: 13px 15px; margin-bottom: 14px; }
 .burn-games { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-top: 10px; }
 .burn-row { display: flex; align-items: center; gap: 10px; }
-.burn-name { font-family: 'Orbitron', monospace; font-size: 8px; letter-spacing: .5px; min-width: 36px; }
+.burn-name { font-family: 'Orbitron', monospace; font-size: 10px; letter-spacing: .5px; min-width: 36px; }
 .burn-bw { flex: 1; display: flex; flex-direction: column; gap: 2px; }
 .burn-bar { height: 3px; background: rgba(255,255,255,0.06); border-radius: 1px; overflow: hidden; }
 .burn-fill { height: 100%; border-radius: 1px; transition: width .4s; }
-.burn-sub { font-family: 'JetBrains Mono', monospace; font-size: 8px; color: var(--text-dim); }
-.burn-pct { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-dim); min-width: 28px; text-align: right; }
+.burn-sub { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-dim); }
+.burn-pct { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-dim); min-width: 28px; text-align: right; }
 
 /* ── ACHIEVEMENTS ── */
 .ach-view { padding-top: 16px; }
@@ -969,7 +978,7 @@ body::after {
 .nexus-record::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--signal), var(--operative), var(--vanguard), var(--phantom)); }
 .record-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
 .record-title { font-family: 'Orbitron', monospace; font-size: 10px; letter-spacing: 2px; color: var(--text-bright); text-transform: uppercase; }
-.record-tier { font-family: 'Orbitron', monospace; font-size: 9px; letter-spacing: 1.5px; padding: 3px 8px; border-radius: 2px; font-weight: 700; }
+.record-tier { font-family: 'Orbitron', monospace; font-size: 10px; letter-spacing: 1.5px; padding: 3px 8px; border-radius: 2px; font-weight: 700; }
 .tier-signal    { background: rgba(96,165,250,.12);  color: var(--signal); }
 .tier-operative { background: rgba(74,222,128,.12);  color: var(--operative); }
 .tier-vanguard  { background: rgba(167,139,250,.12); color: var(--vanguard); }
@@ -977,8 +986,8 @@ body::after {
 .record-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
 .record-stat { background: var(--bg3); border: 1px solid var(--border); border-radius: 3px; padding: 9px 11px; }
 .rs-val { font-family: 'Orbitron', monospace; font-size: 18px; font-weight: 700; color: var(--text-bright); line-height: 1; margin-bottom: 3px; }
-.rs-lbl { font-family: 'JetBrains Mono', monospace; font-size: 8px; color: var(--text-dim); letter-spacing: .5px; }
-.record-sync { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--text-dim); margin-top: 10px; display: flex; align-items: center; gap: 6px; }
+.rs-lbl { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-dim); letter-spacing: .5px; }
+.record-sync { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-dim); margin-top: 10px; display: flex; align-items: center; gap: 6px; }
 .sync-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--ok); flex-shrink: 0; transition: transform .3s; }
 .sync-dot.pending { background: var(--warn); animation: pulse 1.5s infinite; }
 .sync-dot.err { background: var(--danger); }
@@ -991,12 +1000,12 @@ body::after {
 .dw-card.earned .dw-check::after { content: ''; width: 5px; height: 3px; border-left: 1.5px solid #000; border-bottom: 1.5px solid #000; transform: rotate(-45deg) translateY(-1px); display: block; }
 .dw-name { font-size: 11px; font-weight: 600; color: var(--text); flex: 1; }
 .dw-card.earned .dw-name { color: var(--czn); }
-.dw-cond { font-family: 'JetBrains Mono', monospace; font-size: 8px; color: var(--text-dim); }
+.dw-cond { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-dim); }
 .tier-section { margin-bottom: 20px; }
 .tier-hdr { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
 .tier-name { font-family: 'Orbitron', monospace; font-size: 10px; letter-spacing: 2px; font-weight: 700; }
 .tier-line { flex: 1; height: 1px; background: var(--border); }
-.tier-count { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-dim); }
+.tier-count { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-dim); }
 .ach-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; }
 .ach-card { background: var(--panel); border: 1px solid var(--border); border-radius: 3px; padding: 11px 13px; display: flex; align-items: flex-start; gap: 10px; opacity: .22; transition: all .4s; position: relative; overflow: hidden; border-left: 2px solid transparent; }
 .ach-card.unlocked { opacity: 1; }
@@ -1012,10 +1021,10 @@ body::after {
 .ach-card.unlocked.operative .ach-name { color: var(--operative); }
 .ach-card.unlocked.vanguard  .ach-name { color: var(--vanguard); }
 .ach-card.unlocked.phantom   .ach-name { color: var(--phantom); }
-.ach-flavor { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--text-dim); line-height: 1.4; margin-bottom: 4px; }
+.ach-flavor { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-dim); line-height: 1.4; margin-bottom: 4px; }
 .ach-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-.ach-tier-badge { font-family: 'Orbitron', monospace; font-size: 7px; padding: 1px 4px; border-radius: 2px; letter-spacing: .5px; }
-.ach-game-badge { font-family: 'JetBrains Mono', monospace; font-size: 7px; padding: 1px 4px; border-radius: 2px; color: var(--text-dim); background: var(--bg3); }
+.ach-tier-badge { font-family: 'Orbitron', monospace; font-size: 10px; padding: 1px 4px; border-radius: 2px; letter-spacing: .5px; }
+.ach-game-badge { font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 1px 4px; border-radius: 2px; color: var(--text-dim); background: var(--bg3); }
 
 /* ── SESSION MODE OVERLAY ──
    v5.10: Full cockpit atmosphere redesign.
@@ -1167,7 +1176,7 @@ body::after {
 .sm-header-title::after  { left:  calc(100% + 10px); width: 36px; }
 
 .sm-header-meta {
-  font-family: 'JetBrains Mono', monospace; font-size: 10px;
+  font-family: 'JetBrains Mono', monospace; font-size: 11px;
   color: rgba(255,255,255,0.25); margin-top: 3px; letter-spacing: 1px;
 }
 
@@ -1237,12 +1246,12 @@ body::after {
 .sm-item-inner { flex: 1; padding: 11px 14px; min-width: 0; }
 .sm-item-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .sm-item-top.sm-expandable { cursor: pointer; user-select: none; }
-.sm-rank { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: rgba(255,255,255,0.18); letter-spacing: 1px; flex-shrink: 0; }
-.sm-game-tag { font-family: 'Orbitron', monospace; font-size: 9px; font-weight: 700; letter-spacing: 1.5px; padding: 2px 7px; border-radius: 3px; flex-shrink: 0; }
+.sm-rank { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: rgba(255,255,255,0.18); letter-spacing: 1px; flex-shrink: 0; }
+.sm-game-tag { font-family: 'Orbitron', monospace; font-size: 10px; font-weight: 700; letter-spacing: 1.5px; padding: 2px 7px; border-radius: 3px; flex-shrink: 0; }
 .sm-label { font-family: 'Syne', sans-serif; font-size: 13px; color: rgba(255,255,255,0.82); flex: 1; min-width: 0; }
-.sm-meta { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: rgba(255,255,255,0.3); flex-shrink: 0; text-align: right; }
+.sm-meta { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: rgba(255,255,255,0.3); flex-shrink: 0; text-align: right; }
 .sm-meta-urgent { color: #ff5252; font-weight: 600; }
-.sm-expand-arrow { font-size: 10px; color: rgba(255,255,255,0.22); flex-shrink: 0; transition: transform 0.2s; }
+.sm-expand-arrow { font-size: 11px; color: rgba(255,255,255,0.22); flex-shrink: 0; transition: transform 0.2s; }
 .sm-daily-block.expanded .sm-expand-arrow { transform: rotate(180deg); }
 
 /* Urgent item breathing border */
@@ -1261,7 +1270,7 @@ body::after {
   padding: 7px 12px; background: rgba(255,255,255,0.03);
   border: 1px solid rgba(255,255,255,0.07); border-radius: 4px;
   color: rgba(255,255,255,0.38); font-family: 'JetBrains Mono', monospace;
-  font-size: 10px; letter-spacing: 1px; cursor: pointer; transition: all 0.15s; width: 100%;
+  font-size: 11px; letter-spacing: 1px; cursor: pointer; transition: all 0.15s; width: 100%;
 }
 .sm-check-btn:hover {
   background: color-mix(in srgb, var(--item-accent, #e84faa) 8%, transparent);
@@ -1285,7 +1294,7 @@ body::after {
 .sm-sub-check { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.18); flex-shrink: 0; transition: all 0.15s; }
 .sm-subtask:hover .sm-sub-check { border-color: rgba(255,255,255,0.38); }
 .sm-sub-text { font-family: 'Syne', sans-serif; font-size: 12px; color: rgba(255,255,255,0.68); flex: 1; min-width: 0; }
-.sm-sub-tag { font-family: 'JetBrains Mono', monospace; font-size: 8px; padding: 1px 5px; border-radius: 2px; flex-shrink: 0; opacity: 0.55; }
+.sm-sub-tag { font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 1px 5px; border-radius: 2px; flex-shrink: 0; opacity: 0.55; }
 
 /* ── ALL CLEAR ── */
 .sm-clear { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 80px 20px; text-align: center; }
@@ -1323,15 +1332,15 @@ body::after {
 .toast.phantom   { border-color: rgba(255,215,0,.45); border-left: 2px solid var(--phantom); }
 .toast.dispatch  { border-color: rgba(232,79,170,.25); border-left: 2px solid var(--czn); }
 .t-icon { font-size: 20px; flex-shrink: 0; }
-.t-tier { font-family: 'Orbitron', monospace; font-size: 7px; letter-spacing: 2px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 2px; }
+.t-tier { font-family: 'Orbitron', monospace; font-size: 10px; letter-spacing: 2px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 2px; }
 .toast.signal    .t-tier { color: var(--signal); }
 .toast.operative .t-tier { color: var(--operative); }
 .toast.vanguard  .t-tier { color: var(--vanguard); }
-.toast.phantom   .t-tier { color: var(--phantom); font-size: 8px; }
+.toast.phantom   .t-tier { color: var(--phantom); font-size: 11px; }
 .t-name { font-size: 13px; font-weight: 700; color: var(--text-bright); margin-bottom: 2px; }
 .toast.phantom .t-name { color: var(--phantom); }
-.t-flavor { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--text-dim); line-height: 1.3; }
-.t-dismiss { font-family: 'JetBrains Mono', monospace; font-size: 8px; color: var(--text-dim); cursor: pointer; margin-left: 8px; flex-shrink: 0; align-self: flex-start; }
+.t-flavor { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-dim); line-height: 1.3; }
+.t-dismiss { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-dim); cursor: pointer; margin-left: 8px; flex-shrink: 0; align-self: flex-start; }
 .t-dismiss:hover { color: var(--text); }
 
 @keyframes phantomFlash { 0% { opacity: 0; } 20% { opacity: .1; } 100% { opacity: 0; } }
@@ -1349,12 +1358,12 @@ body::after {
 }
 .modal::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--amber), var(--czn)); }
 .modal-title { font-family: 'Orbitron', monospace; font-size: 13px; font-weight: 700; color: var(--text-bright); letter-spacing: 1px; margin-bottom: 4px; }
-.modal-sub { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-dim); margin-bottom: 16px; }
+.modal-sub { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-dim); margin-bottom: 16px; }
 .modal-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px; }
 .ms { background: var(--bg3); border: 1px solid var(--border); border-radius: 3px; padding: 9px; text-align: center; }
 .ms-val { font-family: 'Orbitron', monospace; font-size: 16px; font-weight: 700; color: var(--text-bright); line-height: 1; }
-.ms-lbl { font-family: 'JetBrains Mono', monospace; font-size: 8px; color: var(--text-dim); margin-top: 3px; }
-.modal-label { font-family: 'Orbitron', monospace; font-size: 8px; letter-spacing: 1.5px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 6px; }
+.ms-lbl { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-dim); margin-top: 3px; }
+.modal-label { font-family: 'Orbitron', monospace; font-size: 10px; letter-spacing: 1.5px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 6px; }
 .modal-ta { width: 100%; height: 60px; background: var(--bg3); border: 1px solid var(--border); border-radius: 3px; padding: 8px 10px; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text); resize: none; outline: none; transition: border-color .2s; margin-bottom: 14px; }
 .modal-ta:focus { border-color: var(--border2); }
 .modal-ta::placeholder { color: var(--text-dim); }
@@ -1397,7 +1406,7 @@ body::after {
   content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
   background: linear-gradient(90deg, transparent, rgba(255,150,30,0.15), transparent);
 }
-.footer span { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--text-dim); }
+.footer span { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-dim); }
 #footerVer { cursor: pointer; user-select: none; }
 #footerVer:active { color: var(--text-mid); }
 .fresh-status { display: flex; align-items: center; gap: 5px; }
@@ -1415,19 +1424,19 @@ body::after {
 }
 .rb-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
 .rb-title {
-  font-family: 'Orbitron', monospace; font-size: 8px; letter-spacing: 2px;
+  font-family: 'Orbitron', monospace; font-size: 10px; letter-spacing: 2px;
   color: var(--text-dim); text-transform: uppercase;
 }
-.rb-age { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--text-dim); }
+.rb-age { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-dim); }
 .rb-age.stale { color: var(--warn); }
 .rb-age.never { color: var(--danger); }
 .rb-note {
-  font-family: 'JetBrains Mono', monospace; font-size: 8px;
+  font-family: 'JetBrains Mono', monospace; font-size: 11px;
   color: var(--text-dim); line-height: 1.4; margin-bottom: 8px; opacity: .7;
 }
 .rb-btns { display: flex; gap: 8px; }
 .rb-btn {
-  flex: 1; font-family: 'Syne', sans-serif; font-size: 10px; font-weight: 600;
+  flex: 1; font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 600;
   letter-spacing: 1px; padding: 8px 10px; border-radius: 3px;
   cursor: pointer; transition: all .2s; background: none;
   border: 1px solid var(--border2); color: var(--text-mid);
@@ -1484,6 +1493,126 @@ body::after {
 @media (max-width: 400px) {
   .fd-header { flex-direction: column; gap: 8px; }
   .fd-budget { text-align: left; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   v5.21 FIELD-READY (Nov 2026 audit D1–D5, D8). Same palette, fonts and
+   motifs; larger targets, an events panel, a phone tab bar, and a
+   quieter tracker. Everything below overrides rules above it.
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── D2: TAP TARGETS — every task and cycle row ≥ 44px, bigger check ── */
+.trow, .cycle-row { min-height: 44px; padding: 8px 10px; gap: 10px; }
+.tcheck, .ccheck { width: 18px; height: 18px; border-radius: 3px; }
+.trow.done .tcheck::after, .cycle-row.cleared .ccheck::after { width: 7px; height: 4px; }
+.trow:focus-visible, .cycle-row:focus-visible, .game-top:focus-visible,
+.nav-tab:focus-visible, .ev-row > summary:focus-visible {
+  outline: 2px solid var(--amber); outline-offset: 2px;
+}
+.btn-xs { min-height: 36px; padding: 8px 12px; }
+.fresh-dismiss { min-width: 44px; min-height: 44px; display: flex; align-items: center; justify-content: center; }
+
+/* ── D5: COLLAPSED-CARD SUMMARY — a collapsed card still says something ── */
+.g-sum {
+  display: none; margin-top: 6px;
+  font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-mid);
+}
+.game-card.collapsed .g-sum { display: block; }
+.g-sum .g-sum-due { color: var(--warn); }
+
+/* ── D5: ENDGAME ALERTS FOLDED INTO THE TODAY PANEL ── */
+.today-alerts { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border); }
+.today-alerts-hdr {
+  font-family: 'Orbitron', monospace; font-size: 10px; letter-spacing: 2px;
+  color: var(--text-dim); text-transform: uppercase; margin-bottom: 6px;
+}
+.today-alerts .urg-row { display: flex; flex-direction: column; gap: 0; }
+.today-alerts .urg-card {
+  max-width: none; min-width: 0; width: 100%; flex: none;
+  background: none; border: none; border-bottom: 1px solid var(--border);
+  clip-path: none; padding: 9px 4px 9px 12px; min-height: 40px; animation: none;
+}
+.today-alerts .urg-card:last-child { border-bottom: none; }
+.today-alerts .urg-card::before { top: 10px; bottom: 10px; }
+.today-alerts .ubody { display: flex; align-items: baseline; gap: 8px; }
+.today-alerts .ugame { margin: 0; min-width: 32px; }
+.today-alerts .umode { white-space: normal; overflow: visible; font-size: 12px; }
+
+/* ── D1: EVENTS PANEL ── */
+.events-panel { margin: 0 0 12px; }
+.ev-list { display: flex; flex-direction: column; gap: 6px; }
+.ev-row {
+  background: var(--panel); border: 1px solid var(--border);
+  border-left: 3px solid var(--ev-accent, var(--border2));
+}
+.ev-row.critical { border-left-color: var(--danger); background: rgba(255,82,82,0.035); }
+.ev-row > summary {
+  list-style: none; cursor: pointer; user-select: none;
+  display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 8px 12px;
+}
+.ev-row > summary::-webkit-details-marker { display: none; }
+.ev-game {
+  font-family: 'Orbitron', monospace; font-size: 10px; letter-spacing: 1px;
+  padding: 2px 6px; border-radius: 2px; flex-shrink: 0;
+  color: var(--ev-accent); background: rgba(var(--ev-rgb), 0.12);
+}
+.ev-name { flex: 1; min-width: 0; font-size: 12px; font-weight: 600; color: var(--text-bright); line-height: 1.3; }
+.ev-crit {
+  display: block; font-family: 'Orbitron', monospace; font-size: 10px; letter-spacing: 1.5px;
+  color: var(--danger); text-transform: uppercase; margin-bottom: 2px; font-weight: 400;
+}
+.ev-days { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-mid); white-space: nowrap; flex-shrink: 0; }
+.ev-days.soon { color: var(--warn); }
+.ev-days.urgent { color: var(--danger); }
+.ev-row[open] > summary .ev-chev { transform: rotate(90deg); }
+.ev-chev { color: var(--text-dim); font-size: 11px; transition: transform .2s; flex-shrink: 0; }
+.ev-body { padding: 0 12px 12px 12px; font-size: 12px; line-height: 1.5; color: var(--text); }
+.ev-note { margin-top: 6px; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-mid); }
+.ev-more > summary {
+  list-style: none; cursor: pointer; min-height: 44px; display: flex; align-items: center;
+  font-family: 'Orbitron', monospace; font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--text-mid); padding: 0 4px;
+}
+.ev-more > summary::-webkit-details-marker { display: none; }
+.ev-more[open] > summary { display: none; }
+.ev-more .ev-list { margin-top: 0; }
+.ev-empty { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-dim); padding: 8px 0; }
+
+/* ── Today panel on phones: priority lines wrap instead of clipping ── */
+@media (max-width: 480px) {
+  .today-item { flex-wrap: wrap; row-gap: 4px; }
+  .today-rank { white-space: nowrap; min-width: 0; }
+  .today-text { flex: 1 1 140px; }
+  .today-meta { flex-basis: 100%; white-space: normal; }
+  /* Weekly Planner priority list — same treatment */
+  .fd-rank { white-space: nowrap; }
+  .fd-label { flex: 1 1 140px; min-width: 0; }
+  .fd-meta { flex-basis: 100%; margin-left: 0 !important; white-space: normal; }
+}
+
+/* ── D4: TAB BAR — full labels on wide screens, fixed bottom bar on phones ── */
+.nt-short { display: none; }
+@media (max-width: 700px) {
+  .nav {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 7000;
+    margin: 0; overflow: visible;
+    background: rgba(8,9,12,0.94);
+    -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+    border-bottom: none; border-top: 1px solid rgba(255,255,255,0.08);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .nav::after { top: 0; bottom: auto; }
+  .nav-tab {
+    flex: 1 1 0; text-align: center; padding: 18px 4px 16px;
+    font-size: 10px; letter-spacing: 2px;
+    border-bottom: none; border-top: 2px solid transparent;
+  }
+  .nav-tab.active { border-top-color: var(--amber); }
+  .nt-long { display: none; }
+  .nt-short { display: inline; }
+  .wrap { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
+  #sessionFab { bottom: calc(78px + env(safe-area-inset-bottom, 0px)); }
+  .view { padding-top: 4px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

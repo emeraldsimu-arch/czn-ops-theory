@@ -71,7 +71,7 @@ function boot(isoNow, store = {}) {
     + '\n;globalThis.__T = { CONFIG, GAMES, ld, sv, getLT, saveLT, getCy, setCy, setCyWeekly, togCy, togT,'
     + ' recordCycleClear, updateLT, setv, getv, wk, dk, parseDay, daysUntil, localISO, resolveDeadline,'
     + ' daysUntilCycleEnds, cycleResetLabel, isCycleExpired, checkCycleFreshness, migrateV520, pruneStore,'
-    + ' confirmReset, getColPrefs, togCol, cycleIdentity, BACKUP_KEYS, COLK, SK, LTK };';
+    + ' confirmReset, getColPrefs, togCol, cycleIdentity, BACKUP_KEYS, COLK, SK, LTK, buildEvents, cardSummary };';
   vm.runInContext(src, ctx, { filename: 'nexus-bundle.js' });
   return { T: ctx.__T, ls, els };
 }
@@ -243,6 +243,29 @@ test('F9 an expired event row makes the data stale', () => {
   const cf = T.checkCycleFreshness();
   eq(cf.stale, true);
   eq(cf.warnings.some(w => w.includes('Old Event')), true);
+});
+
+// ── v5.21 ──
+test('D1 Events panel lists every live event, critical pinned, expired hidden', () => {
+  const { T, els } = boot('2026-11-12T16:00:00Z');
+  T.CONFIG.events.length = 0;
+  T.CONFIG.events.push(
+    { id: 'a', game: 'ww',  tier: 'standard', name: 'Soon Std',  ends: '2026-11-14', desc: 'x' },
+    { id: 'b', game: 'hsr', tier: 'critical', name: 'Late Crit', ends: '2026-12-20', desc: 'y' },
+    { id: 'c', game: 'zzz', tier: 'standard', name: 'Gone',      ends: '2026-11-01', desc: 'z' });
+  T.buildEvents();
+  const html = els.eventsPanel.innerHTML;
+  eq(html.includes('Gone'), false, 'expired hidden;');
+  eq(html.indexOf('Late Crit') < html.indexOf('Soon Std'), true, 'critical first;');
+  eq(html.includes('2 days left'), true, 'local day count;');
+});
+test('D5 collapsed-card summary counts dailies, cycles and cycles due', () => {
+  const { T } = boot('2026-11-12T16:00:00Z'); pin(T);
+  T.setv('zzz', 'daily', 0, true);
+  const g = T.GAMES.find(x => x.id === 'zzz');
+  const txt = T.cardSummary(g);
+  eq(txt.startsWith('Daily 1/4 · Cycles 0/3'), true, txt);
+  eq(txt.includes('1 due'), true, 'Shiyu due tomorrow;');
 });
 
 // ── Boot smoke: the full init path runs against the live config ──

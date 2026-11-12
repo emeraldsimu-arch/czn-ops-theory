@@ -8,10 +8,13 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="NEXUS">
 <title>NEXUS — Game Mission Tracker</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" href="fonts/syne-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/orbitron-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/jetbrains-mono-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="style.css">
 <link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
 </head>
 <body>
 
@@ -20,12 +23,20 @@
 <script>
 (function(){
   const c = document.getElementById('nexus-bg');
-  const ctx = c.getContext('2d');
+  let ctx = c.getContext('2d');
   let stars = [], W, H;
 
+  // v5.21 (audit D6): the planet is drawn once per resize onto its own
+  // layer instead of rebuilding three gradients every frame.
+  let planetLayer = null;
   function resize(){
     W = c.width  = window.innerWidth;
     H = c.height = window.innerHeight;
+    planetLayer = document.createElement('canvas');
+    planetLayer.width = W; planetLayer.height = H;
+    const main = ctx; ctx = planetLayer.getContext('2d');
+    drawPlanet();
+    ctx = main;
   }
 
   function init(){
@@ -129,13 +140,13 @@
     };
   }
 
-  function drawAsteroid(){
+  function drawAsteroid(n = 1){
     if(!ast.active) return;
-    ast.t += ast.speed;
+    ast.t += ast.speed * n;
     // Slight speed variation — faster in mid-arc (gravity sling)
     const speedMod = 1 + Math.sin(ast.t * Math.PI) * 0.4;
-    ast.t += ast.speed * speedMod * 0.3;
-    ast.angle += 0.008 + Math.sin(ast.t * 2) * 0.003; // gentle irregular tumble
+    ast.t += ast.speed * speedMod * 0.3 * n;
+    ast.angle += (0.008 + Math.sin(ast.t * 2) * 0.003) * n; // gentle irregular tumble
 
     if(ast.t >= 1){
       ast.active = false;
@@ -218,25 +229,35 @@
     ctx.restore();
   }
 
-  let frame=0;
-  function fullDraw(){
-    ctx.clearRect(0,0,W,H); frame++;
-    drawPlanet();
+  // v5.21 (audit D6): ~15fps instead of every display frame, time-based so
+  // twinkle and asteroid speed look the same as before; one still frame and
+  // no loop when the OS asks for reduced motion; rAF already pauses while
+  // the app is hidden.
+  let frame=0, last=0;
+  const FRAME_MS = 66;
+  const still = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function fullDraw(now){
+    if (!still) requestAnimationFrame(fullDraw);
+    now = now || 0;
+    if (!still && last && now - last < FRAME_MS) return;
+    const steps = last ? Math.min(8, Math.round((now - last) / 16.67)) : 1;
+    last = now;
+    ctx.clearRect(0,0,W,H); frame += steps;
+    if (planetLayer) ctx.drawImage(planetLayer, 0, 0);
     stars.forEach(s=>{
       const a=s.base+Math.sin(frame*s.speed+s.phase)*s.base*0.8;
       ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
       ctx.fillStyle=`rgba(${s.r255},${s.g255},${s.b255},${Math.max(0,Math.min(1,a))})`;
       ctx.fill();
     });
-    drawAsteroid();
-    requestAnimationFrame(fullDraw);
+    if (!still) drawAsteroid(steps);
   }
 
   resize(); init();
   // First asteroid: 8–18 seconds after load
-  setTimeout(launchAsteroid, 8000 + Math.random() * 10000);
+  if (!still) setTimeout(launchAsteroid, 8000 + Math.random() * 10000);
   fullDraw();
-  window.addEventListener('resize',()=>{ resize(); init(); });
+  window.addEventListener('resize',()=>{ resize(); init(); if (still) fullDraw(); });
 })();
 </script>
 
@@ -250,7 +271,7 @@
     <div style="font-family:'Orbitron',monospace;font-weight:900;font-size:22px;letter-spacing:4px;color:#eef2ff;margin-bottom:4px">
       NEX<span style="color:#e84faa">U</span>S
     </div>
-    <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#4a5468;letter-spacing:2px;margin-bottom:32px">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#4a5468;letter-spacing:2px;margin-bottom:32px">
       OPERATOR AUTHENTICATION
     </div>
     <div style="display:flex;justify-content:center;gap:10px;margin-bottom:20px" id="pinDots">
@@ -274,7 +295,7 @@
       <button class="pin-btn" onclick="pinPress('0')">0</button>
       <button class="pin-btn pin-submit" onclick="pinSubmit()">→</button>
     </div>
-    <div id="pinSetupMsg" style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#4a5468;margin-top:20px;line-height:1.5"></div>
+    <div id="pinSetupMsg" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#4a5468;margin-top:20px;line-height:1.5"></div>
   </div>
 </div>
 
@@ -498,11 +519,12 @@ pinInit();
     <button id="freshDismiss" class="fresh-dismiss" onclick="dismissFreshBanner()" style="display:none" title="Dismiss until day before reset">✕</button>
   </div>
 
-  <nav class="nav">
-    <div class="nav-tab active"  onclick="switchView('tracker',this)">Mission Tracker</div>
-    <div class="nav-tab"         onclick="switchView('calendar',this)">Weekly Planner</div>
-    <div class="nav-tab"         onclick="switchView('currency',this)">Currency</div>
-    <div class="nav-tab" id="achTab" onclick="switchView('achievements',this)">Achievements</div>
+  <!-- v5.21: fixed bottom tab bar on phones (short labels), top tabs on wide screens -->
+  <nav class="nav" role="tablist" aria-label="NEXUS sections">
+    <div class="nav-tab active" role="tab" tabindex="0" aria-selected="true"  onclick="switchView('tracker',this)"><span class="nt-long">Mission Tracker</span><span class="nt-short">Track</span></div>
+    <div class="nav-tab"        role="tab" tabindex="0" aria-selected="false" onclick="switchView('calendar',this)"><span class="nt-long">Weekly Planner</span><span class="nt-short">Plan</span></div>
+    <div class="nav-tab"        role="tab" tabindex="0" aria-selected="false" onclick="switchView('currency',this)"><span class="nt-long">Currency</span><span class="nt-short">Pulls</span></div>
+    <div class="nav-tab" id="achTab" role="tab" tabindex="0" aria-selected="false" onclick="switchView('achievements',this)"><span class="nt-long">Achievements</span><span class="nt-short">Record</span></div>
   </nav>
 
   <!-- TRACKER -->
@@ -514,10 +536,9 @@ pinInit();
       <div class="dispatch-pips" id="dPips"></div>
       <span class="dispatch-count" id="dCount">0 / 10</span>
     </div>
-    <div class="urg-section">
-      <div class="sec-hdr"><div class="pdot"></div>Endgame Alerts</div>
-      <div class="urg-row" id="urgRow"></div>
-    </div>
+    <!-- v5.21: Endgame Alerts now render inside #todayPanel (buildUrgency) -->
+    <!-- v5.21 (D1): every live event from config.js, critical pinned -->
+    <div class="events-panel" id="eventsPanel"></div>
     <div class="game-grid" id="gameGrid"></div>
     <div class="notes-card">
       <div class="sec-hdr" style="margin-bottom:8px">Session Notes</div>

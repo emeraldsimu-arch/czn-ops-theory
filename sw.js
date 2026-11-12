@@ -1,7 +1,11 @@
 // ═══════════════════════════════════════════════════════════
-// NEXUS v5.20 — SERVICE WORKER
+// NEXUS v5.21 — SERVICE WORKER
 // Stale-while-revalidate for the app shell; NETWORK-FIRST for data/
 // (v5.20). Bump CACHE_NAME whenever any file outside data/ changes.
+// Changes from v5.20:
+//   - CACHE_NAME: nexus-v520-static → nexus-v521-static (shell + fonts)
+//   - Precaches the three self-hosted woff2 fonts in fonts/ (audit D7),
+//     so the real typefaces render offline. No fetch-logic changes.
 // Changes from v5.19:
 //   - CACHE_NAME: nexus-v519-static → nexus-v520-static (app.js changed)
 //   - data/*.js is now network-first with cache fallback (audit F6).
@@ -28,7 +32,7 @@
 //   - fetch: opaque/error responses no longer poison the cache
 // ═══════════════════════════════════════════════════════════
 
-const CACHE_NAME = 'nexus-v520-static';
+const CACHE_NAME = 'nexus-v521-static';
 
 const ASSETS = [
   '/czn-ops-theory/',
@@ -41,6 +45,9 @@ const ASSETS = [
   '/czn-ops-theory/data/achievements.js',
   '/czn-ops-theory/icons/icon-192.png',
   '/czn-ops-theory/icons/icon-512.png',
+  '/czn-ops-theory/fonts/orbitron-latin-wght-normal.woff2',
+  '/czn-ops-theory/fonts/syne-latin-wght-normal.woff2',
+  '/czn-ops-theory/fonts/jetbrains-mono-latin-wght-normal.woff2',
 ];
 
 self.addEventListener('install', e => {

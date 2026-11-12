@@ -163,6 +163,7 @@ const GAMES = [
 ];
 
 // ── Weekly calendar plan ──
+// v5.21: colours are the game CSS variables (were hardcoded hex copies).
 // cycleKey field (optional): links a task to a tracked endgame cycle.
 // renderWeekStrip() uses this to subtract cleared cycles from each
 // day's dynamic load bar. Tasks without cycleKey are static (dailies,
@@ -171,64 +172,64 @@ const WEEK_PLAN = [
   {
     day: 'MON', load: 'medium', focus: 'CZN + HSR Dailies',
     tasks: [
-      { l: 'CZN Dailies + Spiral Tower ×2', c: '#e84faa' },
-      { l: 'HSR Dailies + Trailblaze Power', c: '#9d7ff5' },
-      { l: 'WW Dailies + Echo farm',         c: '#2de8a0' },
-      { l: 'ZZZ Errands + Battery Charge',   c: '#4ab8f0' },
+      { l: 'CZN Dailies + Spiral Tower ×2', c: 'var(--czn)' },
+      { l: 'HSR Dailies + Trailblaze Power', c: 'var(--hsr)' },
+      { l: 'WW Dailies + Echo farm',         c: 'var(--ww)' },
+      { l: 'ZZZ Errands + Battery Charge',   c: 'var(--zzz)' },
     ]
   },
   {
     day: 'TUE', load: 'light', focus: 'ZZZ + Materials',
     tasks: [
-      { l: 'ZZZ Notorious Hunts + Ridu Weekly', c: '#4ab8f0' },
-      { l: 'CZN Spiral Tower ×1',               c: '#e84faa' },
-      { l: 'WW Waveplate spend',                c: '#2de8a0' },
+      { l: 'ZZZ Notorious Hunts + Ridu Weekly', c: 'var(--zzz)' },
+      { l: 'CZN Spiral Tower ×1',               c: 'var(--czn)' },
+      { l: 'WW Waveplate spend',                c: 'var(--ww)' },
     ]
   },
   {
     day: 'WED', load: 'heavy', focus: 'WW Endgame Block',
     tasks: [
-      { l: 'WW Tower of Adversity (all zones incl. Hazard Zone)', c: '#2de8a0', cycleKey: 'ww_toa' },
-      { l: 'WW Whimpering Wastes',              c: '#2de8a0', cycleKey: 'ww_ww' },
-      { l: 'HSR Daily + Sim Universe',          c: '#9d7ff5' },
-      { l: 'CZN Spiral Tower ×1',               c: '#e84faa' },
+      { l: 'WW Tower of Adversity (all zones incl. Hazard Zone)', c: 'var(--ww)', cycleKey: 'ww_toa' },
+      { l: 'WW Whimpering Wastes',              c: 'var(--ww)', cycleKey: 'ww_ww' },
+      { l: 'HSR Daily + Sim Universe',          c: 'var(--hsr)' },
+      { l: 'CZN Spiral Tower ×1',               c: 'var(--czn)' },
     ]
   },
   {
     day: 'THU', load: 'medium', focus: 'HSR Endgame Block',
     tasks: [
-      { l: 'HSR Memory of Chaos',     c: '#9d7ff5', cycleKey: 'hsr_moc' },
-      { l: 'HSR Pure Fiction',        c: '#9d7ff5', cycleKey: 'hsr_pf'  },
-      { l: 'ZZZ Hollow Zero run',     c: '#4ab8f0', cycleKey: 'zzz_hollow' },
-      { l: 'CZN Basin of Hyperspace', c: '#e84faa', cycleKey: 'czn_boh' },
+      { l: 'HSR Memory of Chaos',     c: 'var(--hsr)', cycleKey: 'hsr_moc' },
+      { l: 'HSR Pure Fiction',        c: 'var(--hsr)', cycleKey: 'hsr_pf'  },
+      { l: 'ZZZ Hollow Zero run',     c: 'var(--zzz)', cycleKey: 'zzz_hollow' },
+      { l: 'CZN Basin of Hyperspace', c: 'var(--czn)', cycleKey: 'czn_boh' },
     ]
   },
   {
     day: 'FRI', load: 'heavy', focus: 'HSR + ZZZ Endgame',
     tasks: [
-      { l: 'HSR Apocalyptic Shadow',    c: '#9d7ff5', cycleKey: 'hsr_as'    },
-      { l: 'HSR Anomaly Arbitration',   c: '#9d7ff5', cycleKey: 'hsr_aa'    },
-      { l: 'ZZZ Shiyu Defense / Critical Node', c: '#4ab8f0', cycleKey: 'zzz_shiyu'  },
-      { l: 'ZZZ Deadly Assault',        c: '#4ab8f0', cycleKey: 'zzz_deadly' },
-      { l: 'WW Endstate Matrix',        c: '#2de8a0', cycleKey: 'ww_em'     },
+      { l: 'HSR Apocalyptic Shadow',    c: 'var(--hsr)', cycleKey: 'hsr_as'    },
+      { l: 'HSR Anomaly Arbitration',   c: 'var(--hsr)', cycleKey: 'hsr_aa'    },
+      { l: 'ZZZ Shiyu Defense / Critical Node', c: 'var(--zzz)', cycleKey: 'zzz_shiyu'  },
+      { l: 'ZZZ Deadly Assault',        c: 'var(--zzz)', cycleKey: 'zzz_deadly' },
+      { l: 'WW Endstate Matrix',        c: 'var(--ww)', cycleKey: 'ww_em'     },
     ]
   },
   {
     day: 'SAT', load: 'medium', focus: 'CZN Deep Session',
     tasks: [
-      { l: 'CZN Sortie Mode run',      c: '#e84faa', cycleKey: 'czn_sortie' },
-      { l: 'CZN Full-Scale Offensive', c: '#e84faa', cycleKey: 'czn_fso'    },
-      { l: 'WW Thousand Gateways',     c: '#2de8a0', cycleKey: 'ww_tg'      },
-      { l: 'Mop-up any missed dailies',c: '#4a5468' },
+      { l: 'CZN Sortie Mode run',      c: 'var(--czn)', cycleKey: 'czn_sortie' },
+      { l: 'CZN Full-Scale Offensive', c: 'var(--czn)', cycleKey: 'czn_fso'    },
+      { l: 'WW Thousand Gateways',     c: 'var(--ww)', cycleKey: 'ww_tg'      },
+      { l: 'Mop-up any missed dailies',c: 'var(--text-dim)' },
     ]
   },
   {
     day: 'SUN', load: 'light', focus: 'Catch-up + CZN Weekly Reset',
     tasks: [
-      { l: 'CZN weekly reset — Guild Office + Nono Shop', c: '#e84faa' },
-      { l: 'ZZZ Trust invites + event check',             c: '#4ab8f0' },
-      { l: 'Any missed endgame modes',                    c: '#4a5468' },
-      { l: 'Plan next week pulls',                        c: '#4a5468' },
+      { l: 'CZN weekly reset — Guild Office + Nono Shop', c: 'var(--czn)' },
+      { l: 'ZZZ Trust invites + event check',             c: 'var(--zzz)' },
+      { l: 'Any missed endgame modes',                    c: 'var(--text-dim)' },
+      { l: 'Plan next week pulls',                        c: 'var(--text-dim)' },
     ]
   },
 ];

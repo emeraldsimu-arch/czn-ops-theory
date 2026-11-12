@@ -1,4 +1,4 @@
-// NEXUS v5.20 — CONFIG
+// NEXUS v5.21 — CONFIG
 // ── THIS IS THE ONLY FILE THAT NEEDS UPDATING ON PATCH DAY ──
 // Last verified: 2026-11-12
 // Next review: 2026-11-13 (zzz_shiyu resets). Then 2026-11-16 (hsr_as),
@@ -8,6 +8,11 @@
 //   Rossweisse + Blazebell + Carnival close, FSO/BoH roll), 2026-12-07
 //   (ww_toa), 2026-12-14 (hsr_moc), ~2026-12-21/22 (WW 4.0 + HSR 4.8,
 //   both ESTIMATES — re-verify), ~2026-12-23 (CZN S5 end, DERIVED).
+//
+// v5.21 code release (Field-ready, audit D1–D9): CONFIG.version 5.20 -> 5.21.
+//   No date changed. Every live `events[]` row is now SHOWN in the Events
+//   panel above the game cards (critical pinned, then soonest first) with
+//   its `desc` and `currency.note` on tap — write those for a phone reader.
 //
 // v5.20 code release (Integrity, audit F1–F9): CONFIG.version 5.19 -> 5.20.
 //   No date changed in this file for the release. Two things the app now
@@ -100,7 +105,7 @@
 // ═══════════════════════════════════════════════════════════
 
 const CONFIG = {
-  version: '5.20',
+  version: '5.21',
   lastVerified: '2026-11-12',
 
   resetTimes: {
