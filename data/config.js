@@ -1,13 +1,19 @@
 // NEXUS v5.21 — CONFIG
 // ── THIS IS THE ONLY FILE THAT NEEDS UPDATING ON PATCH DAY ──
-// Last verified: 2026-11-12
-// Next review: 2026-11-13 (zzz_shiyu resets). Then 2026-11-16 (hsr_as),
+// Last verified: 2026-11-13
+// Next review: 2026-11-16 (hsr_as). Then
 //   2026-11-19 (zzz_deadly last day), 2026-11-23 (ww_ww), 2026-11-24
 //   (CZN Tiphera rerun ends), 2026-11-30 (hsr_pf + ZZZ Spooky Funhouse),
 //   2026-12-01 (ZZZ 3.3 ends), 2026-12-02 (BIG CZN pass — Phase 3/Dahlia,
 //   Rossweisse + Blazebell + Carnival close, FSO/BoH roll), 2026-12-07
 //   (ww_toa), 2026-12-14 (hsr_moc), ~2026-12-21/22 (WW 4.0 + HSR 4.8,
 //   both ESTIMATES — re-verify), ~2026-12-23 (CZN S5 end, DERIVED).
+//
+// 2026-11-13 data pass (one row): zzz_shiyu 2026-11-13 -> 2026-11-27.
+//   Critical Node reset this morning (every other Friday, Icy Veins); the
+//   new window runs to the Nov 27 reset. NEXT RESET convention. DERIVED
+//   from the fixed 14-day cadence (Sep 4 / 18 / Oct 2 / 16 / 30 / Nov 13).
+//   Everything else confirmed unchanged from the 2026-11-12 pass.
 //
 // v5.21 code release (Field-ready, audit D1–D9): CONFIG.version 5.20 -> 5.21.
 //   No date changed. Every live `events[]` row is now SHOWN in the Events
@@ -106,7 +112,7 @@
 
 const CONFIG = {
   version: '5.21',
-  lastVerified: '2026-11-12',
+  lastVerified: '2026-11-13',
 
   resetTimes: {
     hsr: { dailyUTC: 10, weeklyDay: 1, weeklyUTC: 10 },
@@ -162,11 +168,11 @@ const CONFIG = {
     czn_sortie: { ends: 'weekly',     type: 'weekly', label: 'Sortie Mode run' },
 
     // ZZZ v3.3 "Journey to the Sky" live Oct 21, closes Dec 1/2.
-    // Shiyu Critical: window Oct 30 - Nov 13, tracks NEXT RESET date per
-    //   this key's convention (Icy Veins: "next reset ... November 13th").
+    // Shiyu Critical: window Nov 13 - Nov 27, tracks NEXT RESET date per
+    //   this key's convention (every other Friday; Nov 27 DERIVED).
     // Deadly Assault: cycle started Nov 6, tracks LAST DAY per this key's
     //   convention -> Nov 19. Next reset Fri Nov 20.
-    zzz_shiyu:  { ends: '2026-11-13', type: 'date',   label: 'Shiyu Defense / Critical Node' },
+    zzz_shiyu:  { ends: '2026-11-27', type: 'date',   label: 'Shiyu Defense / Critical Node' },
     zzz_deadly: { ends: '2026-11-19', type: 'date',   label: 'Deadly Assault' },
     zzz_hollow: { ends: 'weekly',     type: 'weekly', label: 'Hollow Zero / Operation Matrix' },
   },
