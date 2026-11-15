@@ -35,7 +35,10 @@ function fakeEl() {
 }
 
 // ── Sandbox factory with a fixed clock ──
-function boot(isoNow, store = {}) {
+// `preInit` is JS run after the data files and BEFORE app.js boots, for
+// tests whose outcome is decided during init (migration). Keeps them
+// independent of whatever dates the live config.js holds.
+function boot(isoNow, store = {}, preInit = '') {
   const FIXED = new Date(isoNow).getTime();
   const RealDate = Date;
   class FakeDate extends RealDate {
@@ -66,8 +69,8 @@ function boot(isoNow, store = {}) {
   vm.createContext(ctx);
   // Top-level const/let in classic scripts share one global lexical scope,
   // exactly as in the browser, so load them as one script in load order.
-  const src = ['data/config.js', 'data/games.js', 'data/achievements.js', 'app.js']
-    .map(read).join('\n;\n')
+  const src = ['data/config.js', 'data/games.js', 'data/achievements.js'].map(read).join('\n;\n')
+    + '\n;' + preInit + '\n;' + read('app.js')
     + '\n;globalThis.__T = { CONFIG, GAMES, ld, sv, getLT, saveLT, getCy, setCy, setCyWeekly, togCy, togT,'
     + ' recordCycleClear, updateLT, setv, getv, wk, dk, parseDay, daysUntil, localISO, resolveDeadline,'
     + ' daysUntilCycleEnds, cycleResetLabel, isCycleExpired, checkCycleFreshness, migrateV520, pruneStore,'
@@ -200,7 +203,7 @@ test('F5 Reset this week clears CZN weeklies and every game\'s dailies', () => {
 // ── Migration ──
 test('Migration keeps a valid legacy clear and seeds the lifetime latch', () => {
   const store = { nexus_v53: JSON.stringify({ CY_zzz_shiyu: { cleared: true, date: '2026-11-10' } }) };
-  const { T } = boot('2026-11-12T16:00:00Z', store); pin(T);
+  const { T } = boot('2026-11-12T16:00:00Z', store, "CONFIG.cycles.zzz_shiyu.ends = '2026-11-13';"); pin(T);
   T.migrateV520();
   eq(T.getCy('zzz_shiyu'), true, 'still cleared');
   eq(T.getLT()._cyCounted.zzz_shiyu, '2026-11-13', 'latched');
@@ -209,7 +212,7 @@ test('Migration keeps a valid legacy clear and seeds the lifetime latch', () => 
 });
 test('Migration drops a legacy clear made after the cycle ended', () => {
   const store = { nexus_v53: JSON.stringify({ CY_zzz_shiyu: { cleared: true, date: '2026-11-20' } }) };
-  const { T } = boot('2026-11-12T16:00:00Z', store); pin(T);
+  const { T } = boot('2026-11-12T16:00:00Z', store, "CONFIG.cycles.zzz_shiyu.ends = '2026-11-13';"); pin(T);
   T.migrateV520();
   eq(T.getCy('zzz_shiyu'), false);
 });
