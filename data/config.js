@@ -1,13 +1,44 @@
 // NEXUS v5.21 — CONFIG
 // ── THIS IS THE ONLY FILE THAT NEEDS UPDATING ON PATCH DAY ──
-// Last verified: 2026-11-13
-// Next review: 2026-11-16 (hsr_as). Then
-//   2026-11-19 (zzz_deadly last day), 2026-11-23 (ww_ww), 2026-11-24
-//   (CZN Tiphera rerun ends), 2026-11-30 (hsr_pf + ZZZ Spooky Funhouse),
-//   2026-12-01 (ZZZ 3.3 ends), 2026-12-02 (BIG CZN pass — Phase 3/Dahlia,
-//   Rossweisse + Blazebell + Carnival close, FSO/BoH roll), 2026-12-07
-//   (ww_toa), 2026-12-14 (hsr_moc), ~2026-12-21/22 (WW 4.0 + HSR 4.8,
-//   both ESTIMATES — re-verify), ~2026-12-23 (CZN S5 end, DERIVED).
+// Last verified: 2026-11-24
+// Next review: 2026-11-27 (zzz_shiyu reset). Then
+//   2026-11-30 (hsr_pf + ZZZ Spooky Funhouse), 2026-12-01 (ZZZ 3.3 ends),
+//   2026-12-02 (BIG CZN pass — Phase 3/Dahlia, Rossweisse + Blazebell +
+//   Carnival close, FSO/BoH roll), 2026-12-03 (zzz_deadly last day),
+//   2026-12-07 (ww_toa), 2026-12-14 (hsr_moc), 2026-12-21 (WW 3.8 end +
+//   ww_ww/ww_em — 4.0 CONFIRMED Dec 22), ~2026-12-22 (HSR 4.7 end, 4.8
+//   still unannounced — ESTIMATE), ~2026-12-23 (CZN S5 end, DERIVED),
+//   2026-12-28 (hsr_as).
+//
+// 2026-11-24 follow-up pass (on top of 2026-11-23):
+//   - ev_czn_tiphera REMOVED: rerun closes today 18:00 UTC and would trip
+//     the stale banner from tomorrow. Follow-up rerun (Rita & Ivy, Nov 24 -
+//     Dec 15 per the 11-12 pass) NOT added — standard rerun, dates not
+//     re-verifiable today.
+//   - WW 4.0 "Embers of the Everbright" officially Dec 22 (RPG Site, Inven
+//     Global, Final Weapon) -> ww patch row Dec 21 Americas CONFIRMED, no
+//     date change. ww_ww Dec 21 now lines up with the version boundary.
+//   - HSR 4.8: still no official date found. hsr row unchanged.
+//   Everything else unchanged from 2026-11-23.
+//
+// 2026-11-23 data pass (three cycles, scheduled check):
+//   - hsr_as: 2026-11-16 -> 2026-12-28. New AS "Navigator's Netherveil"
+//     Nov 16 04:00 - Dec 28 03:59 server (Animon Life 4.7 endgame
+//     schedule, citing the official 4.7 Update Details; matches the
+//     6-week Monday cadence per Icy Veins).
+//   - zzz_deadly: 2026-11-19 -> 2026-12-03. Cycle (3.3 Phase III) runs
+//     Nov 20 - Dec 4 04:00 server (GuildMeta). LAST DAY convention -> Dec 3.
+//   - ww_ww: 2026-11-23 -> 2026-12-21. The Nov 23 reset has passed; next
+//     on the 28-day cadence is Dec 21 (= WW 3.8 end). DERIVED — no current
+//     source found that prints the date; re-verify at the 4.0 pass.
+//   - Events: none expired (Tiphera rerun closes tomorrow, kept). No new
+//     critical/standard rows found.
+//   Confirmed unchanged: all four patch rows, hsr_moc/pf/aa, ww_toa/em,
+//   czn_boh/fso, zzz_shiyu, every event row, pulls/weeklyYields/resetTimes.
+//   CZN Flames Illuminating Memories still closes Dec 2 (PlayDay, Inven).
+//   HSR 4.8 and WW 4.0 dates still unannounced in sources checked.
+// Sources (2026-11-23): Animon Life (HSR 4.7 endgame), Icy Veins (AS),
+//   GuildMeta (ZZZ Deadly Assault), PlayDay + Inven Global (CZN S5 Phase 2).
 //
 // 2026-11-13 data pass (one row): zzz_shiyu 2026-11-13 -> 2026-11-27.
 //   Critical Node reset this morning (every other Friday, Icy Veins); the
@@ -112,7 +143,7 @@
 
 const CONFIG = {
   version: '5.21',
-  lastVerified: '2026-11-13',
+  lastVerified: '2026-11-24',
 
   resetTimes: {
     hsr: { dailyUTC: 10, weeklyDay: 1, weeklyUTC: 10 },
@@ -142,19 +173,19 @@ const CONFIG = {
     // windows run past the 4.6/4.7 boundary):
     // MoC "Survival of the Fittest" Nov 2 - Dec 14 03:59 server.
     // PF "Imagined Words" Oct 19 - Nov 30 03:59.
-    // AS "Dominance of Oblivion" Oct 5 - Nov 16 03:59.
+    // AS "Navigator's Netherveil" Nov 16 - Dec 28 03:59 (Animon Life).
     // AA refreshed with 4.7 -> runs to the version boundary (Dec 22 NA).
     hsr_moc:    { ends: '2026-12-14', type: 'date',   label: 'Memory of Chaos' },
     hsr_pf:     { ends: '2026-11-30', type: 'date',   label: 'Pure Fiction' },
-    hsr_as:     { ends: '2026-11-16', type: 'date',   label: 'Apocalyptic Shadow' },
+    hsr_as:     { ends: '2026-12-28', type: 'date',   label: 'Apocalyptic Shadow' },
     hsr_aa:     { ends: '2026-12-22', type: 'date',   label: 'Anomaly Arbitration' },
 
     // WW v3.8 (Nov 12 - Dec 21)
     // ToA 28-day Monday cadence: Sep 14 / Oct 12 / Nov 9 / Dec 7.
-    // WhiWa 28-day cadence: Sep 28 / Oct 26 / Nov 23 / Dec 21.
+    // WhiWa 28-day cadence: Sep 28 / Oct 26 / Nov 23 / Dec 21 (DERIVED).
     // Endstate Matrix is patch-tied -> follows 3.8 to Dec 21.
     ww_toa:     { ends: '2026-12-07', type: 'date',   label: 'Tower of Adversity (all zones incl. Hazard Zone)' },
-    ww_ww:      { ends: '2026-11-23', type: 'date',   label: 'Whimpering Wastes' },
+    ww_ww:      { ends: '2026-12-21', type: 'date',   label: 'Whimpering Wastes' },
     ww_em:      { ends: '2026-12-21', type: 'patch',  label: 'Endstate Matrix (v3.8 phase)' },
     ww_tg:      { ends: 'weekly',     type: 'weekly', label: 'Fantasies of Thousand Gateways' },
 
@@ -170,10 +201,10 @@ const CONFIG = {
     // ZZZ v3.3 "Journey to the Sky" live Oct 21, closes Dec 1/2.
     // Shiyu Critical: window Nov 13 - Nov 27, tracks NEXT RESET date per
     //   this key's convention (every other Friday; Nov 27 DERIVED).
-    // Deadly Assault: cycle started Nov 6, tracks LAST DAY per this key's
-    //   convention -> Nov 19. Next reset Fri Nov 20.
+    // Deadly Assault: cycle Nov 20 - Dec 4 (GuildMeta), tracks LAST DAY per
+    //   this key's convention -> Dec 3. Next reset Fri Dec 4.
     zzz_shiyu:  { ends: '2026-11-27', type: 'date',   label: 'Shiyu Defense / Critical Node' },
-    zzz_deadly: { ends: '2026-11-19', type: 'date',   label: 'Deadly Assault' },
+    zzz_deadly: { ends: '2026-12-03', type: 'date',   label: 'Deadly Assault' },
     zzz_hollow: { ends: 'weekly',     type: 'weekly', label: 'Hollow Zero / Operation Matrix' },
   },
 
@@ -183,7 +214,6 @@ const CONFIG = {
     // units do not join the standard pool afterward. Hard deadline.
     { id: 'ev_czn_rossweisse', game: 'czn', tier: 'critical', name: 'Rossweisse & Sig Rate-Up (Seasonal)', ends: '2026-12-02', desc: 'SEASONAL 1st-anniversary combatant — Justice Striker, Binding keyword. Obtainable only during this banner (Oct 21 - Dec 2). Sig is her signature Partner, same window. Ends before Dec 2 maintenance', currency: { type: 'crystal', amount: 0, note: 'Hard deadline. Soft pity 58 / hard 70. Dahlia (Justice Hunter) opens Dec 2 — budget across both' } },
     { id: 'ev_czn_blazebell',  game: 'czn', tier: 'standard', name: 'Blazebell & Vivian Rate-Up (Phase 2)', ends: '2026-12-02', desc: 'New Justice Controller — AP generation, card draw, healing; pairs with Rossweisse. Vivian is her signature Controller Partner. Nov 11 - Dec 2', currency: { type: 'crystal', amount: 0, note: 'Phase-length banner, closes at the Dec 2 update' } },
-    { id: 'ev_czn_tiphera',    game: 'czn', tier: 'standard', name: 'Tiphera & Tiana Rerun', ends: '2026-11-24', desc: 'Rerun banner Nov 3 - Nov 24 18:00 UTC. Rita & Ivy rerun follows Nov 24 - Dec 15', currency: { type: 'crystal', amount: 0, note: 'Rerun — only pull if filling a gap' } },
     // 1st anniversary "Nightmare Carnival" (adjusted with the Nov 11 patch)
     // plus the two Phase 2 events, all closing at the Dec 2 update.
     { id: 'ev_czn_carnival',   game: 'czn', tier: 'standard', name: 'Nightmare Carnival / Flames Illuminating Memories', ends: '2026-12-02', desc: '1st-anniversary Nightmare Carnival (Blazebell now a guest manager in Nightmare Dream Park), Rules of Good Order, and the Flames Illuminating Memories story-mission event — all run to Dec 2', currency: { type: 'crystal', amount: 0, note: 'Anniversary rewards — clear mission sets and exchange shop before Dec 2' } },
